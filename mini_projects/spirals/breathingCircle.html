@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Circle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            border-radius: 50%;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 50px;
+            color: white;
+            text-align: center;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="breathingCanvas" width="400" height="400"></canvas>
+    <div class="instructions">
+        <p>Follow the circle with your breathing</p>
+        <p>Inhale as it grows • Exhale as it shrinks</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('breathingCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        let time = 0;
+        const breathingCycle = 8000; // 8 seconds per cycle
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate breathing phase
+            const phase = (Date.now() % breathingCycle) / breathingCycle;
+            const breathingValue = Math.sin(phase * Math.PI * 2) * 0.5 + 0.5;
+
+            // Circle properties
+            const baseRadius = 50;
+            const maxRadius = 150;
+            const radius = baseRadius + (maxRadius - baseRadius) * breathingValue;
+
+            // Color transition
+            const hue = (phase * 360) % 360;
+            const saturation = 70;
+            const lightness = 50 + breathingValue * 30;
+
+            // Draw main circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw inner glow
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+            gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`);
+            gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>

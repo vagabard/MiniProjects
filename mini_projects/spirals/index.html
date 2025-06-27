@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Spiral</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .spiral-container {
+            width: 400px;
+            height: 400px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .spiral {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                #ff6b6b 30deg,
+                #4ecdc4 60deg,
+                #45b7d1 90deg,
+                #96ceb4 120deg,
+                #ffeaa7 150deg,
+                #dda0dd 180deg,
+                #ff9ff3 210deg,
+                #54a0ff 240deg,
+                #5f27cd 270deg,
+                #00d2d3 300deg,
+                #ff9f43 330deg,
+                transparent 360deg
+            );
+            animation: spin 3s linear infinite;
+            position: relative;
+        }
+
+        .spiral::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            background: #1a1a1a;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spiral::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60%;
+            height: 60%;
+            background: conic-gradient(
+                from 45deg,
+                transparent 0deg,
+                #ff6b6b 45deg,
+                #4ecdc4 90deg,
+                #45b7d1 135deg,
+                #96ceb4 180deg,
+                #ffeaa7 225deg,
+                #dda0dd 270deg,
+                #ff9ff3 315deg,
+                transparent 360deg
+            );
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 2s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spiral.reverse {
+            animation-direction: reverse;
+        }
+
+        .spiral.reverse::after {
+            animation-direction: normal;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        h1 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spinning Spiral</h1>
+        <p>Watch the mesmerizing spiral spin and use the checkbox to reverse its direction!</p>
+
+        <div class="spiral-container">
+            <div class="spiral" id="spiral"></div>
+        </div>
+
+        <div class="controls">
+            <div class="checkbox-container">
+                <input type="checkbox" id="reverseCheckbox">
+                <label for="reverseCheckbox">Reverse Direction</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const spiral = document.getElementById('spiral');
+        const reverseCheckbox = document.getElementById('reverseCheckbox');
+
+        reverseCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                spiral.classList.add('reverse');
+            } else {
+                spiral.classList.remove('reverse');
+            }
+        });
+    </script>
+</body>
+</html>

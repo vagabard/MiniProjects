@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Spiral Hypnotic Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #333;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 15px;
+            background-color: #444;
+            border-radius: 8px;
+        }
+
+        .spiral-layers {
+            margin-bottom: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .spiral-layer {
+            background-color: #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #666;
+        }
+
+        .spiral-layer.active {
+            border-left-color: #4CAF50;
+            background-color: #454545;
+        }
+
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .layer-title {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .layer-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        select, input, button {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: white;
+            font-size: 12px;
+        }
+
+        button {
+            background-color: #666;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #777;
+        }
+
+        button.remove-btn {
+            background-color: #d32f2f;
+            padding: 4px 8px;
+        }
+
+        button.remove-btn:hover {
+            background-color: #f44336;
+        }
+
+        .add-layer-btn {
+            background-color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .add-layer-btn:hover {
+            background-color: #45a049;
+        }
+
+        canvas {
+            border: 2px solid #555;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .animation-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .global-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+<h1>Multi-Spiral Hypnotic Generator</h1>
+
+<div class="main-controls">
+    <div class="control-group">
+        <label for="globalInvert">Global Invert:</label>
+        <input type="checkbox" id="globalInvert">
+    </div>
+
+    <div class="control-group">
+        <label for="canvasSize">Canvas Size:</label>
+        <select id="canvasSize">
+            <option value="600">600x600</option>
+            <option value="800">800x800</option>
+            <option value="1000">1000x1000</option>
+        </select>
+    </div>
+</div>
+
+<button class="add-layer-btn" onclick="addSpiralLayer()">+ Add Spiral Layer</button>
+
+<div class="spiral-layers" id="spiralLayers">
+    <!-- Spiral layers will be added here -->
+</div>
+
+<canvas id="spiralCanvas" width="600" height="600"></canvas>
+
+<div class="animation-controls">
+    <button onclick="toggleGlobalAnimation()">Start All Animation</button>
+    <div class="global-controls">
+        <div class="control-group">
+            <label for="globalSpeedMultiplier">Global Speed:</label>
+            <input type="range" id="globalSpeedMultiplier" min="0.1" max="3" step="0.1" value="1">
+            <span id="globalSpeedValue">1.0</span>
+        </div>
+        <button onclick="resetAllSpeeds()">Reset Speeds</button>
+        <button onclick="randomizeAll()">Randomize All</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('spiralCanvas');
+    const ctx = canvas.getContext('2d');
+    let centerX = canvas.width / 2;
+    let centerY = canvas.height / 2;
+
+    let spiralLayers = [];
+    let layerCounter = 0;
+    let globalAnimationId = null;
+    let isGlobalAnimating = false;
+
+    // Global controls
+    document.getElementById('globalSpeedMultiplier').addEventListener('input', function() {
+        document.getElementById('globalSpeedValue').textContent = parseFloat(this.value).toFixed(1);
+    });
+
+    document.getElementById('canvasSize').addEventListener('change', function() {
+        const size = parseInt(this.value);
+        canvas.width = size;
+        canvas.height = size;
+        centerX = canvas.width / 2;
+        centerY = canvas.height / 2;
+        generateAllSpirals();
+    });
+
+    document.getElementById('globalInvert').addEventListener('change', generateAllSpirals);
+
+    function addSpiralLayer() {
+        layerCounter++;
+        const layerId = `layer_${layerCounter}`;
+
+        const layer = {
+            id: layerId,
+            active: true,
+            type: 'archimedean',
+            arms: 2,
+            density: 1,
+            thickness: 4,
+            speed: 1,
+            opacity: 0.8,
+            offset: 0,
+            color: '#ffffff'
+        };
+
+        spiralLayers.push(layer);
+        createLayerUI(layer);
+        generateAllSpirals();
+    }
+
+    function createLayerUI(layer) {
+        const layersContainer = document.getElementById('spiralLayers');
+
+        const layerDiv = document.createElement('div');
+        layerDiv.className = 'spiral-layer active';
+        layerDiv.id = layer.id;
+
+        layerDiv.innerHTML = `
+                <div class="layer-header">
+                    <div class="layer-title">Spiral Layer ${layer.id.split('_')[1]}</div>
+                    <div>
+                        <input type="checkbox" id="${layer.id}_active" checked onchange="toggleLayer('${layer.id}')">
+                        <label for="${layer.id}_active">Active</label>
+                        <button class="remove-btn" onclick="removeLayer('${layer.id}')">Remove</button>
+                    </div>
+                </div>
+
+                <div class="layer-controls">
+                    <div class="control-group">
+                        <label>Type:</label>
+                        <select id="${layer.id}_type" onchange="updateLayer('${layer.id}')">
+                            <option value="archimedean">Archimedean</option>
+                            <option value="logarithmic">Logarithmic</option>
+                            <option value="hyperbolic">Hyperbolic</option>
+                            <option value="fermat">Fermat</option>
+                            <option value="double">Double</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Arms:</label>
+                        <input type="range" id="${layer.id}_arms" min="1" max="8" value="${layer.arms}" oninput="updateLayer('${layer.id}')">
+                        <span id="${layer.id}_armsValue">${layer.arms}</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Density:</label>
+                        <input type="range" id="${layer.id}_density" min="0.1" max="2" step="0.1" value="${layer.density}" oninput="updateLayer('${layer.id}')">
+                        <span id="${layer.id}_densityValue">${layer.density.toFixed(1)}</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Thickness:</label>
+                        <input type="range" id="${layer.id}_thickness" min="1" max="20" value="${layer.thickness}" oninput="updateLayer('${layer.id}')">
+                        <span id="${layer.id}_thicknessValue">${layer.thickness}</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Speed:</label>
+                        <input type="range" id="${layer.id}_speed" min="-3" max="3" step="0.1" value="${layer.speed}" oninput="updateLayer('${layer.id}')">
+                        <span id="${layer.id}_speedValue">${layer.speed.toFixed(1)}</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Opacity:</label>
+                        <input type="range" id="${layer.id}_opacity" min="0.1" max="1" step="0.1" value="${layer.opacity}" oninput="updateLayer('${layer.id}')">
+                        <span id="${layer.id}_opacityValue">${layer.opacity.toFixed(1)}</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Color:</label>
+                        <input type="color" id="${layer.id}_color" value="${layer.color}" onchange="updateLayer('${layer.id}')">
+                    </div>
+                </div>
+            `;
+
+        layersContainer.appendChild(layerDiv);
+    }
+
+    function updateLayer(layerId) {
+        const layer = spiralLayers.find(l => l.id === layerId);
+        if (!layer) return;
+
+        layer.type = document.getElementById(`${layerId}_type`).value;
+        layer.arms = parseInt(document.getElementById(`${layerId}_arms`).value);
+        layer.density = parseFloat(document.getElementById(`${layerId}_density`).value);
+        layer.thickness = parseInt(document.getElementById(`${layerId}_thickness`).value);
+        layer.speed = parseFloat(document.getElementById(`${layerId}_speed`).value);
+        layer.opacity = parseFloat(document.getElementById(`${layerId}_opacity`).value);
+        layer.color = document.getElementById(`${layerId}_color`).value;
+
+        // Update display values
+        document.getElementById(`${layerId}_armsValue`).textContent = layer.arms;
+        document.getElementById(`${layerId}_densityValue`).textContent = layer.density.toFixed(1);
+        document.getElementById(`${layerId}_thicknessValue`).textContent = layer.thickness;
+        document.getElementById(`${layerId}_speedValue`).textContent = layer.speed.toFixed(1);
+        document.getElementById(`${layerId}_opacityValue`).textContent = layer.opacity.toFixed(1);
+
+        if (!isGlobalAnimating) {
+            generateAllSpirals();
+        }
+    }
+
+    function toggleLayer(layerId) {
+        const layer = spiralLayers.find(l => l.id === layerId);
+        const layerDiv = document.getElementById(layerId);
+
+        layer.active = document.getElementById(`${layerId}_active`).checked;
+
+        if (layer.active) {
+            layerDiv.classList.add('active');
+        } else {
+            layerDiv.classList.remove('active');
+        }
+
+        generateAllSpirals();
+    }
+
+    function removeLayer(layerId) {
+        spiralLayers = spiralLayers.filter(l => l.id !== layerId);
+        document.getElementById(layerId).remove();
+        generateAllSpirals();
+    }
+
+    function generateAllSpirals() {
+        const globalInvert = document.getElementById('globalInvert').checked;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = globalInvert ? 'white' : 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        spiralLayers.forEach(layer => {
+            if (layer.active) {
+                drawSpiral(layer, globalInvert);
+            }
+        });
+    }
+
+    function drawSpiral(layer, globalInvert) {
+        ctx.save();
+
+        // Set opacity
+        ctx.globalAlpha = layer.opacity;
+
+        // Set color
+        let strokeColor = layer.color;
+        if (globalInvert) {
+            // Invert the color for global invert
+            strokeColor = invertColor(layer.color);
+        }
+
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = layer.thickness;
+        ctx.lineCap = 'round';
+
+        const maxRadius = Math.min(centerX, centerY) - 20;
+        const steps = 3000;
+
+        for (let arm = 0; arm < layer.arms; arm++) {
+            ctx.beginPath();
+            let firstPoint = true;
+
+            for (let i = 0; i < steps; i++) {
+                const t = (i / steps) * 20 * Math.PI * layer.density;
+                const armOffset = (arm * 2 * Math.PI) / layer.arms;
+                let r, angle;
+
+                switch (layer.type) {
+                    case 'archimedean':
+                        r = (t / (20 * Math.PI)) * maxRadius;
+                        angle = t + armOffset + layer.offset;
+                        break;
+
+                    case 'logarithmic':
+                        r = Math.exp(t * 0.1) * 2;
+                        angle = t + armOffset + layer.offset;
+                        break;
+
+                    case 'hyperbolic':
+                        r = maxRadius / (1 + t * 0.1);
+                        angle = t + armOffset + layer.offset;
+                        break;
+
+                    case 'fermat':
+                        r = Math.sqrt(t) * 15;
+                        angle = t + armOffset + layer.offset;
+                        break;
+
+                    case 'double':
+                        r = (t / (20 * Math.PI)) * maxRadius;
+                        angle = t * 2 + armOffset + layer.offset;
+                        break;
+                }
+
+                if (r > maxRadius) break;
+
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                if (firstPoint) {
+                    ctx.moveTo(x, y);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.stroke();
+        }
+
+        // Add concentric circles for hypnotic effect on certain spiral types
+        if (layer.type === 'archimedean' || layer.type === 'double') {
+            ctx.lineWidth = Math.max(1, layer.thickness / 4);
+            for (let r = 20; r < maxRadius; r += 40) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    function invertColor(hex) {
+        // Convert hex to RGB
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        // Invert RGB values
+        const invR = (255 - r).toString(16).padStart(2, '0');
+        const invG = (255 - g).toString(16).padStart(2, '0');
+        const invB = (255 - b).toString(16).padStart(2, '0');
+
+        return `#${invR}${invG}${invB}`;
+    }
+
+    function animateAllSpirals() {
+        if (!isGlobalAnimating) return;
+
+        const globalSpeedMultiplier = parseFloat(document.getElementById('globalSpeedMultiplier').value);
+        const globalInvert = document.getElementById('globalInvert').checked;
+
+        // Update each layer's offset based on its individual speed
+        spiralLayers.forEach(layer => {
+            layer.offset += 0.05 * layer.speed * globalSpeedMultiplier;
+        });
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = globalInvert ? 'white' : 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        spiralLayers.forEach(layer => {
+            if (layer.active) {
+                drawSpiral(layer, globalInvert);
+            }
+        });
+
+        globalAnimationId = requestAnimationFrame(animateAllSpirals);
+    }
+
+    function toggleGlobalAnimation() {
+        const button = event.target;
+
+        if (isGlobalAnimating) {
+            isGlobalAnimating = false;
+            cancelAnimationFrame(globalAnimationId);
+            button.textContent = 'Start All Animation';
+        } else {
+            isGlobalAnimating = true;
+            button.textContent = 'Stop All Animation';
+            animateAllSpirals();
+        }
+    }
+
+    function resetAllSpeeds() {
+        spiralLayers.forEach(layer => {
+            layer.speed = 1;
+            document.getElementById(`${layer.id}_speed`).value = 1;
+            document.getElementById(`${layer.id}_speedValue`).textContent = '1.0';
+        });
+        document.getElementById('globalSpeedMultiplier').value = 1;
+        document.getElementById('globalSpeedValue').textContent = '1.0';
+    }
+
+    function randomizeAll() {
+        spiralLayers.forEach(layer => {
+            // Randomize properties
+            const types = ['archimedean', 'logarithmic', 'hyperbolic', 'fermat', 'double'];
+            layer.type = types[Math.floor(Math.random() * types.length)];
+            layer.arms = Math.floor(Math.random() * 8) + 1;
+            layer.density = Math.random() * 1.9 + 0.1;
+            layer.thickness = Math.floor(Math.random() * 19) + 1;
+            layer.speed = (Math.random() * 6) - 3; // -3 to 3
+            layer.opacity = Math.random() * 0.9 + 0.1;
+
+            // Random color
+            const colors = ['#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            layer.color = colors[Math.floor(Math.random() * colors.length)];
+
+            // Update UI elements
+            document.getElementById(`${layer.id}_type`).value = layer.type;
+            document.getElementById(`${layer.id}_arms`).value = layer.arms;
+            document.getElementById(`${layer.id}_density`).value = layer.density;
+            document.getElementById(`${layer.id}_thickness`).value = layer.thickness;
+            document.getElementById(`${layer.id}_speed`).value = layer.speed;
+            document.getElementById(`${layer.id}_opacity`).value = layer.opacity;
+            document.getElementById(`${layer.id}_color`).value = layer.color;
+
+            // Update display values
+            document.getElementById(`${layer.id}_armsValue`).textContent = layer.arms;
+            document.getElementById(`${layer.id}_densityValue`).textContent = layer.density.toFixed(1);
+            document.getElementById(`${layer.id}_thicknessValue`).textContent = layer.thickness;
+            document.getElementById(`${layer.id}_speedValue`).textContent = layer.speed.toFixed(1);
+            document.getElementById(`${layer.id}_opacityValue`).textContent = layer.opacity.toFixed(1);
+        });
+
+        generateAllSpirals();
+    }
+
+    // Initialize with one spiral layer
+    addSpiralLayer();
+</script>
+</body>
+</html>
