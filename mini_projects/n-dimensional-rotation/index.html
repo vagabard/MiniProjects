@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /*button.stop-button {*/
+        /*    background-color: #dc3545;*/
+        /*}*/
+
+        /*button.stop-button:hover {*/
+        /*    background-color: #c82333;*/
+        /*}*/
+
+        .animation-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .checkbox-item {
+            display: inline-block;
+            margin: 5px 10px;
+            white-space: nowrap;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 5px;
+            transform: scale(1.2);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            user-select: none;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + label {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        #revolveBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
+        #dimensionCheckboxes {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        #canvas3d {
+            border: 2px solid #ddd;
+            margin-top: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            box-sizing: border-box;
+        }
+
+        #canvasContainer {
+            text-align: center;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 1600px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .controls-row label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        #speedSlider {
+            width: 150px;
+            padding: 0;
+        }
+
+        #speedValue {
+            font-weight: bold;
+            color: #007bff;
+            min-width: 40px;
+        }
+
+        /* Make container responsive */
+        @media (max-width: 600px) {
+            .controls-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            #speedSlider {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Point Generator</h1>
+        <form>
+            <div class="form-group">
+                <label for="numPoints">Specify number of points:</label>
+                <input type="number" id="numPoints" name="numPoints" min="1" placeholder="Enter number of points">
+            </div>
+            <div class="form-group">
+                <label for="numDimensions">Specify number of dimensions:</label>
+                <input type="number" id="numDimensions" name="numDimensions" min="1" placeholder="Enter number of dimensions" onchange="updateDimensionCheckboxes()">
+            </div>
+            <button type="button" onclick="generatePoints()">Generate</button>
+
+            <div id="dimensionCheckboxes" class="form-group" style="display: none;">
+                <label>Select axes to rotate around:</label>
+                <div id="checkboxContainer"></div>
+                <button type="button" id="revolveBtn" onclick="toggleRevolve()" style="margin-top: 10px;">Start Revolving</button>
+                <div class="animation-info">Tip: Press spacebar to start/stop rotation</div>
+            </div>
+        </form>
+    </div>
+    <div id="canvasContainer" style="display: none;">
+        <h3>3D Visualization</h3>
+        <div class="controls-row">
+            <label for="speedSlider">Rotation Speed:</label>
+            <input type="range" id="speedSlider" min="0.1" max="20" step="0.1" value="5" oninput="updateRotationSpeed()">
+            <span id="speedValue">1.0x</span>
+        </div>
+        <div class="controls-row">
+            <label for="zoomSlider">Zoom Level:</label>
+            <input type="range" id="zoomSlider" min="0.05" max="0.5" step="0.01" value="0.15" oninput="updateZoom()">
+            <span id="zoomValue">0.15</span>
+        </div>
+        <div class="controls-row">
+            <label for="trailLengthSlider">Trail Length:</label>
+            <input type="range" id="trailLengthSlider" min="10" max="500" step="10" value="150" oninput="updateTrailLength()">
+            <span id="trailLengthValue">150</span>
+        </div>
+        <div class="form-group">
+            <label for="showTrails">Show point trails (trace paths):</label>
+            <input type="checkbox" id="showTrails" >
+        </div>
+        <canvas id="canvas3d"></canvas>
+        <p><small>Points sized by depth: closer = larger, farther = smaller</small></p>
+    </div>
+    <script type="module" src="NDimensionalPoint.js"></script>
+    <script type="module" src="PointCollection.js"></script>
+    <script type="module">
+        let NDimensionalPoint, PointCollection, currentCollection ;
+
+        // Animation variables
+        let isRevolving = false;
+        let animationId = null;
+        const BASE_ROTATION_STEP = Math.PI / 360; // 0.5 degrees in radians
+        let rotationSpeed = 1.0; // Speed multiplier
+        let currentRotationStep = BASE_ROTATION_STEP;
+        let rotationMatrix;
+        // Trail system variables
+        let pointTrails = new Map(); // Store trails for each point
+        let maxTrailLength = 150; // Maximum number of trail points to keep (adjustable by user)
+        // Load modules with error handling
+        try {
+            const ndPointModule = await import('./NDimensionalPoint.js');
+            const collectionModule = await import('./PointCollection.js');
+            NDimensionalPoint = ndPointModule.default;
+            PointCollection = collectionModule.default;
+            console.log('Modules loaded successfully');
+        } catch (error) {
+            console.error('Error loading modules:', error);
+            alert('Error loading JavaScript modules. Make sure NDimensionalPoint.js and PointCollection.js exist in the same directory.');
+        }
+
+        window.generatePoints = function() {
+            try {
+                const numPoints = document.getElementById('numPoints').value;
+                const numDimensions = document.getElementById('numDimensions').value;
+
+                console.log('Generate clicked:', { numPoints, numDimensions });
+
+                if (!numPoints || numPoints < 1) {
+                    alert('Please enter a valid number of points (1 or greater)');
+                    return;
+                }
+
+                if (!numDimensions || numDimensions < 3) {
+                    alert('Please enter at least 3 dimensions for 3D visualization');
+                    return;
+                }
+
+                if (!NDimensionalPoint || !PointCollection) {
+                    alert('JavaScript modules not loaded properly');
+                    return;
+                }
+
+                // Create PointCollection and generate points within unit sphere
+                currentCollection = new PointCollection();
+                generatePointsInUnitSphere(parseInt(numPoints), parseInt(numDimensions));
+
+                console.log(`Generated ${numPoints} points with ${numDimensions} dimensions within unit distance:`);
+                console.log(currentCollection.toString());
+
+                // Show dimension checkboxes
+                updateDimensionCheckboxes();
+                document.getElementById('dimensionCheckboxes').style.display = 'block';
+
+                // Show and render 3D visualization
+                document.getElementById('canvasContainer').style.display = 'block';
+                render3DPoints();
+
+                alert(`Successfully generated ${numPoints} points with ${numDimensions} dimensions within unit distance of origin!`);
+            } catch (error) {
+                console.error('Error in generatePoints:', error);
+                alert('Error generating points: ' + error.message);
+            }
+        }
+
+        window.updateDimensionCheckboxes = function() {
+            try {
+                const numDimensions = document.getElementById('numDimensions').value;
+                const container = document.getElementById('checkboxContainer');
+
+                console.log('Updating checkboxes for dimensions:', numDimensions);
+
+                if (!container) {
+                    console.error('Checkbox container not found');
+                    return;
+                }
+
+                if (!numDimensions || numDimensions < 1) {
+                    container.innerHTML = '';
+                    document.getElementById('dimensionCheckboxes').style.display = 'none';
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                for (let i = 0; i < parseInt(numDimensions); i++) {
+                    const checkboxItem = document.createElement('div');
+                    checkboxItem.className = 'checkbox-item';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `dim${i}`;
+                    checkbox.value = i.toString();
+
+                    // Add event listener to detect changes
+                    checkbox.addEventListener('change', function(event) {
+                        onDimensionCheckboxChange(i, event.target.checked);
+                    });
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `dim${i}`;
+
+                    // Label dimensions: x, y, z, then w with subscripts
+                    if (i === 0) {
+                        label.textContent = 'x';
+                    } else if (i === 1) {
+                        label.textContent = 'y';
+                    } else if (i === 2) {
+                        label.textContent = 'z';
+                    } else {
+                        label.innerHTML = `w<sub>${i-2}</sub>`;
+                    }
+
+                    checkboxItem.appendChild(checkbox);
+                    checkboxItem.appendChild(label);
+                    container.appendChild(checkboxItem);
+                }
+
+                console.log('Checkboxes created successfully');
+            } catch (error) {
+                console.error('Error updating checkboxes:', error);
+            }
+        }
+
+        function getCanvasInformation(canvas) {
+
+            // Make canvas square and responsive
+            const container = document.getElementById('canvasContainer');
+            const containerWidth = container.clientWidth;
+            const maxSize = Math.min(containerWidth - 40, 500);
+
+            canvas.width = maxSize;
+            canvas.height = maxSize;
+            canvas.style.width = maxSize + 'px';
+            canvas.style.height = maxSize + 'px';
+
+             return maxSize;
+        }
+
+        function getViewpoint(){
+            // Define viewpoint position (camera position) - get from slider
+            const viewpointSlider = document.getElementById('viewpointZ');
+            const viewpointDistance = viewpointSlider ? parseFloat(viewpointSlider.value) : 3;
+
+            return {
+                x: 0,    // Centered on X
+                y: 0,    // Centered on Y
+                z: viewpointDistance     // Distance from slider
+            };
+
+        }
+
+        function trimNDimensionalPointTo3d(collectionOfPoints, viewpoint) {
+            return collectionOfPoints.map(point => {
+                const x = point.getCoordinate(0);
+                const y = point.getCoordinate(1);
+                const z = point.getCoordinate(2);
+
+                // Calculate distance from viewpoint using 3D Euclidean distance
+                const distanceFromViewpoint = Math.sqrt(
+                        Math.pow(x - viewpoint.x, 2) +
+                        Math.pow(y - viewpoint.y, 2) +
+                        Math.pow(z - viewpoint.z, 2)
+                );
+                const distanceToOrigin = Math.sqrt(x * x + y * y + z * z);
+
+                return {
+                    x: x,
+                    y: y,
+                    z: z,
+                    distanceFromViewpoint: distanceFromViewpoint,
+                    distanceToOrigin: distanceToOrigin,
+                    originalPoint: point
+                };
+            });
+        }
+
+         // 3D rendering functions
+        function render3DPoints() {
+            try {
+                const canvas = document.getElementById('canvas3d');
+                if (!canvas) {
+                    console.error('Canvas not found');
+                    return;
+                }
+                const maxSize = getCanvasInformation(canvas);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (!currentCollection || currentCollection.size() === 0) {
+                    return;
+                }
+
+                const points = currentCollection.getAllPoints();
+
+                const viewpoint = getViewpoint();
+
+                const points3D = trimNDimensionalPointTo3d(points, viewpoint);
+                // Update trails with current positions
+                updateTrails(points3D);
+
+
+                // Get zoom level from slider
+                const zoomSlider = document.getElementById('zoomSlider');
+                const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
+                const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
+
+                // Canvas center (this is where origin (0,0) will always be)
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Sort points by distance from viewpoint (farthest to nearest for proper rendering)
+                points3D.sort((a, b) => b.distanceFromViewpoint - a.distanceFromViewpoint);
+
+                // Draw trails first (behind points)
+                drawTrails(ctx);
+
+                // Draw origin crosshairs - these should always be at canvas center
+                ctx.strokeStyle = '#eee';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, canvas.height);
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(canvas.width, centerY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Count visible points
+                let visiblePoints = 0;
+                let totalPoints = points3D.length;
+
+                // Find min/max distances for normalization
+                const distances = points3D.map(p => p.distanceToOrigin);
+                const farthestFromOrigin = Math.max(...distances);
+                const nearestToOrigin = Math.min(...distances);
+                const minDistance = viewpoint.z-farthestFromOrigin;
+                const maxDistance = viewpoint.z+farthestFromOrigin;
+                // when the farthest point is away from the viewpoint, it should be 1, when closest to the viewpoint, it should be max
+                const distanceRange = maxDistance - minDistance;
+                // Render points with size and color based on viewpoint distance
+                points3D.forEach(point => {
+                    // Map coordinates with fixed scale - origin (0,0) always at canvas center
+                    const canvasX = centerX + (point.x * fixedScale);
+                    const canvasY = centerY + (point.y * fixedScale);
+                    if (point.x == 0 && point.y ==0 && point.z == 0) {
+                        const color = `rgb(${0}, ${255}, ${0})`;
+                        ctx.beginPath();
+                        ctx.arc(canvasX, canvasY, 3, 0, 2 * Math.PI);
+                        ctx.fillStyle = color;
+                        ctx.fill();
+
+                        return;
+                    }
+
+                    // Check if point is within viewport (including point size)
+//                    const normalizedDistance = distanceRange > 0 ? 1 - ((point.distanceFromViewpoint - minDistance) / distanceRange) : 0.5;
+                    const normalizedDistance = (distanceRange - (point.distanceFromViewpoint-minDistance)) / distanceRange ;
+
+                    const minPointSize = Math.max(1, maxSize * 0.003);
+                    const maxPointSizeCalc = Math.max(5, maxSize * 0.02);
+                    const pointSize = minPointSize + normalizedDistance * (maxPointSizeCalc - minPointSize);
+
+                    // Check if point (including its radius) is visible in viewport
+                    const isVisible = (canvasX + pointSize >= 0 &&
+                                     canvasX - pointSize <= canvas.width &&
+                                     canvasY + pointSize >= 0 &&
+                                     canvasY - pointSize <= canvas.height);
+
+                    if (isVisible) {
+                        visiblePoints++;
+
+                        // Calculate color: Red (close) to Blue (far)
+                        // normalizedDistance: 1 = closest, 0 = farthest
+                        const red = Math.floor(255 * normalizedDistance);           // High when close
+                        const blue = Math.floor(255 * (1 - normalizedDistance));   // High when far
+                        const green = Math.floor(50 * Math.sin(normalizedDistance * Math.PI)); // Subtle green for transition
+
+                        const color = `rgb(${red}, ${green}, ${blue})`;
+
+                        // Alternative smoother transition using HSL
+                        // const hue = 240 * (1 - normalizedDistance); // 0 (red) to 240 (blue)
+                        // const saturation = 80 + 20 * normalizedDistance; // More saturated when close
+                        // const lightness = 40 + 40 * normalizedDistance; // Brighter when close
+                        // const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+                        // Draw point with glow effect for closer points (red ones)
+                        // if (normalizedDistance > 0.6) {
+                        //     // Add red glow for very close points
+                        //     const glowSize = pointSize * (1 + normalizedDistance);
+                        //     const glowIntensity = normalizedDistance * 0.3;
+                        //
+                        //     const gradient = ctx.createRadialGradient(
+                        //         canvasX, canvasY, 0,
+                        //         canvasX, canvasY, glowSize
+                        //     );
+                        //     gradient.addColorStop(0, `rgba(255, 0, 0, ${glowIntensity})`);
+                        //     gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                        //
+                        //     ctx.beginPath();
+                        //     ctx.arc(canvasX, canvasY, glowSize, 0, 2 * Math.PI);
+                        //     ctx.fillStyle = gradient;
+                        //     ctx.fill();
+                        // }
+
+                        // Draw main point
+                        ctx.beginPath();
+                        ctx.arc(canvasX, canvasY, pointSize, 0, 2 * Math.PI);
+                        ctx.fillStyle = color;
+                        ctx.fill();
+
+                        // Add border for definition - darker for close points, lighter for far
+                        if (normalizedDistance > 0.6) {
+                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                        const borderIntensity = 100 + 155 * normalizedDistance;
+                        ctx.strokeStyle = `rgb(${borderIntensity}, ${borderIntensity}, ${borderIntensity})`;
+                        ctx.lineWidth = 0.5 + normalizedDistance * 0.5;
+                        ctx.stroke();
+                    }
+                });
+
+                // Draw viewport boundary
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+                // Add color legend
+                ctx.fillStyle = '#333';
+                ctx.font = Math.max(10, maxSize * 0.02) + 'px Arial';
+                ctx.fillText(`Visible: ${visiblePoints}/${totalPoints} points`, 10, canvas.height - 75);
+                ctx.fillText(`Distance range from origin: ${farthestFromOrigin.toFixed(2)} - ${nearestToOrigin.toFixed(2)}`, 10, canvas.height - 60);
+                ctx.fillText(`Viewpoint: (0, 0, ${viewpoint.z})`, 10, canvas.height - 45);
+                ctx.fillText(`Scale: ${fixedScale.toFixed(1)}px/unit`, 10, canvas.height - 30);
+
+                // Draw color scale legend
+                ctx.fillText('Color: Red (close) → Blue (far)', 10, canvas.height - 15);
+
+                // Draw color gradient bar
+                const gradientBarWidth = 100;
+                const gradientBarHeight = 10;
+                const gradientBarX = canvas.width - gradientBarWidth - 20;
+                const gradientBarY = canvas.height - 25;
+
+                const colorGradient = ctx.createLinearGradient(gradientBarX, 0, gradientBarX + gradientBarWidth, 0);
+                colorGradient.addColorStop(0, 'rgb(0, 0, 255)');     // Blue (far)
+                colorGradient.addColorStop(0.5, 'rgb(128, 25, 128)'); // Purple (middle)
+                colorGradient.addColorStop(1, 'rgb(255, 0, 0)');     // Red (close)
+
+                ctx.fillStyle = colorGradient;
+                ctx.fillRect(gradientBarX, gradientBarY, gradientBarWidth, gradientBarHeight);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(gradientBarX, gradientBarY, gradientBarWidth, gradientBarHeight);
+
+                // Labels for gradient
+                ctx.fillStyle = '#333';
+                ctx.font = Math.max(8, maxSize * 0.015) + 'px Arial';
+                ctx.fillText('Far', gradientBarX - 5, gradientBarY + 8);
+                ctx.fillText('Close', gradientBarX + gradientBarWidth + 5, gradientBarY + 8);
+
+                // Add axes labels
+                ctx.font = Math.max(12, maxSize * 0.025) + 'px Arial';
+                ctx.fillText('X', canvas.width - 25, canvas.height - 45);
+                ctx.fillText('Y', 10, 20);
+                ctx.fillText('Z (depth)', canvas.width / 2 - 30, canvas.height - 45);
+
+                // Mark origin - this should always be at canvas center
+                ctx.fillStyle = '#ff4444';
+                // ctx.beginPath();
+                // ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+                // ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#333';
+                ctx.font = Math.max(10, maxSize * 0.02) + 'px Arial';
+                ctx.fillText('Origin', centerX + 8, centerY - 8);
+
+            } catch (error) {
+                console.error('Error rendering 3D points:', error);
+            }
+        }
+
+        function createIdentityMatrix(size) {
+            const matrix = [];
+            for (let i = 0; i < size; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < size; j++) {
+                    matrix[i][j] = (i === j) ? 1 : 0;
+                }
+            }
+            return matrix;
+        }
+
+        function createGivensRotationMatrix(totalDimensions, dim1, dim2, angle) {
+            const matrix = createIdentityMatrix(totalDimensions);
+
+            const cos_angle = Math.cos(angle);
+            const sin_angle = Math.sin(angle);
+
+            matrix[dim1][dim1] = cos_angle;
+            matrix[dim1][dim2] = -sin_angle;
+            matrix[dim2][dim1] = sin_angle;
+            matrix[dim2][dim2] = cos_angle;
+
+            return matrix;
+        }
+
+        function multiplyMatrices(matrixA, matrixB, result) {
+            const n = matrixA.length;
+            const temp = [];
+
+            for (let i = 0; i < n; i++) {
+                temp[i] = [];
+                for (let j = 0; j < n; j++) {
+                    temp[i][j] = 0;
+                    for (let k = 0; k < n; k++) {
+                        temp[i][j] += matrixA[i][k] * matrixB[k][j];
+                    }
+                }
+            }
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    result[i][j] = temp[i][j];
+                }
+            }
+        }
+
+        function multiplyPointByMatrix(point, matrix) {
+            const coords = point.getCoordinates();
+            const newCoords = [];
+
+            for (let i = 0; i < coords.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < coords.length; j++) {
+                    sum += matrix[i][j] * coords[j];
+                }
+                newCoords[i] = sum;
+            }
+
+
+            return new NDimensionalPoint(...newCoords);
+
+        }
+
+        window.toggleRevolve = function() {
+            try {
+                if (!currentCollection) {
+                    alert('Please generate points first!');
+                    return;
+                }
+
+                const selectedDimensions = getSelectedDimensions();
+
+                if (selectedDimensions.length === 0) {
+                    alert('Please select at least one axis to rotate around!');
+                    return;
+                }
+
+                if (isRevolving) {
+                    // Stop revolving
+                    stopRevolving();
+                } else {
+                    // Start revolving
+                    startRevolving(selectedDimensions);
+                }
+            } catch (error) {
+                console.error('Error in toggleRevolve:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function startRevolving(selectedDimensions) {
+            isRevolving = true;
+            document.getElementById('revolveBtn').textContent = 'Stop Revolving';
+            document.getElementById('revolveBtn').style.backgroundColor = '#dc3545';
+
+            // No need to calculate centroid - we're rotating around origin (0,0,0...)
+
+            function animateRotation() {
+                if (!isRevolving) return;
+
+                try {
+                    // Rotate around origin - no translation needed
+                    console.log('before rotation: ',currentRotationStep,'\n', currentCollection.toString());
+                    currentCollection = rotateCollectionAroundOrigin(
+                        currentCollection,
+                        selectedDimensions,
+                        currentRotationStep
+                    );
+                    console.log('after rotation:', currentCollection.toString());
+
+
+                    render3DPoints();
+                    animationId = requestAnimationFrame(animateRotation);
+
+                } catch (error) {
+                    console.error('Error in animation:', error);
+                    stopRevolving();
+                }
+            }
+
+            animationId = requestAnimationFrame(animateRotation);
+
+        }
+
+        function stopRevolving() {
+            isRevolving = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+
+            updateRotationButtonState(); // Update button text and state
+            console.log('Rotation stopped');
+        }
+
+        // Function to rotate collection around origin (no translation needed)
+        function rotateCollectionAroundOrigin(collection) {
+            const rotatedCollection = new PointCollection();
+
+
+            collection.getAllPoints().forEach(point => {
+                // Direct rotation around origin - no translation needed
+                const rotatedPoint = multiplyPointByMatrix(point, rotationMatrix);
+                rotatedCollection.addPoint(rotatedPoint);
+            });
+
+            return rotatedCollection;
+        }
+
+        // Remove the old rotateCollectionAroundAxes function - it's no longer needed
+
+        // Add cleanup when page is unloaded
+        window.addEventListener('beforeunload', function() {
+            stopRevolving();
+        });
+
+        // Optional: Add keyboard controls
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' && currentCollection) {
+                event.preventDefault();
+                toggleRevolve();
+            }
+        });
+
+
+        // Most intuitive approach: rotate around axis using Rodrigues' rotation formula concept
+        function createIntuitiveAxisRotationMatrix(totalDimensions, axisIndices, angle) {
+            let matrix = createIdentityMatrix(totalDimensions);
+
+            axisIndices.forEach(axisIndex => {
+                // For each axis, rotate all other coordinates around it
+                // This creates a "barrel roll" effect around the specified axis
+
+                // Get all dimensions except the axis
+                const otherDimensions = [];
+                for (let i = 0; i < totalDimensions; i++) {
+                    if (i !== axisIndex) {
+                        otherDimensions.push(i);
+                    }
+                }
+
+                // Rotate pairs of other dimensions
+                for (let i = 0; i < otherDimensions.length - 1; i += 1) {
+                    for (let j = 1; j < otherDimensions.length ; j += 1) {
+                        if (i === j) {
+                            continue;
+                        }
+                        const dim1 = otherDimensions[i];
+                        const dim2 = otherDimensions[j];
+                        const rotationMatrix = createGivensRotationMatrix(totalDimensions, dim1, dim2, angle);
+                        console.log(`Rotating dimensions ${dim1} and ${dim2} around axis ${axisIndex} by ${angle} radians \n` + rotationMatrix.join('\n'));
+                        const newMatrix = createIdentityMatrix(totalDimensions);
+                        multiplyMatrices(matrix, rotationMatrix, newMatrix);
+                        matrix = newMatrix;
+                    }
+
+                }
+            });
+            console.log(`Total rotation matrix \n` + matrix.join('\n'));
+
+            return matrix;
+        }
+
+        window.updateRotationSpeed = function() {
+            try {
+                const slider = document.getElementById('speedSlider');
+                const speedDisplay = document.getElementById('speedValue');
+
+                rotationSpeed = parseFloat(slider.value);
+                currentRotationStep = BASE_ROTATION_STEP * rotationSpeed;
+                speedDisplay.textContent = rotationSpeed.toFixed(1) + 'x';
+                rotationMatrix = createIntuitiveAxisRotationMatrix(
+                        currentCollection.getAllPoints()[0].getDimensions(),
+                        getSelectedDimensions(),
+                        currentRotationStep
+                );
+
+                console.log('Rotation speed updated to:', rotationSpeed);
+            } catch (error) {
+                console.error('Error updating rotation speed:', error);
+            }
+        }
+
+        window.updateZoom = function() {
+            try {
+                const slider = document.getElementById('zoomSlider');
+                const valueDisplay = document.getElementById('zoomValue');
+
+                const zoomLevel = parseFloat(slider.value);
+                valueDisplay.textContent = zoomLevel.toFixed(2);
+
+                // Re-render with new zoom
+                if (currentCollection && currentCollection.size() > 0) {
+                    render3DPoints();
+                }
+
+                console.log('Zoom level updated to:', zoomLevel);
+            } catch (error) {
+                console.error('Error updating zoom:', error);
+            }
+        }
+
+        // Generate points within unit n-dimensional sphere using rejection sampling
+        function generatePointsInUnitSphere(numPoints, dimensions) {
+            let pointsGenerated = 0;
+            let attempts = 0;
+            currentCollection.clear();
+            // add the origin here so it's rendered with the rest of the points
+            const originCoordinates = [];
+            for (let i = 0; i < dimensions; i++) {
+                originCoordinates.push(0);
+            }
+            currentCollection.addPoint(new NDimensionalPoint(...originCoordinates));
+            const maxAttempts = numPoints * 100; // Prevent infinite loops
+
+            while (pointsGenerated < numPoints && attempts < maxAttempts) {
+                attempts++;
+
+                // Generate random coordinates in [-1, 1] range
+                const coordinates = [];
+                for (let i = 0; i < dimensions; i++) {
+                    coordinates.push((Math.random() - 0.5) * 2); // Random between -1 and 1
+                }
+
+                // Create point and check if it's within unit distance
+                const point = new NDimensionalPoint(...coordinates);
+                const distanceFromOrigin = point.magnitude(); // This calculates Euclidean distance from origin
+
+                if (distanceFromOrigin <= 1.0) {
+                    currentCollection.addPoint(point);
+                    pointsGenerated++;
+                }
+            }
+
+            if (pointsGenerated < numPoints) {
+                console.warn(`Only generated ${pointsGenerated} out of ${numPoints} requested points after ${maxAttempts} attempts`);
+                console.warn(`This can happen in high dimensions where the unit sphere occupies a very small fraction of the unit cube`);
+            }
+
+            console.log(`Generated ${pointsGenerated} points in ${attempts} attempts (${(pointsGenerated/attempts*100).toFixed(2)}% success rate)`);
+        }
+
+        // Function called when dimension checkbox is changed
+        function onDimensionCheckboxChange(dimensionIndex, isChecked) {
+            console.log(`Dimension ${dimensionIndex} checkbox ${isChecked ? 'checked' : 'unchecked'}`);
+
+            // Get dimension name for logging
+            let dimensionName;
+            if (dimensionIndex === 0) dimensionName = 'X';
+            else if (dimensionIndex === 1) dimensionName = 'Y';
+            else if (dimensionIndex === 2) dimensionName = 'Z';
+            else dimensionName = `W${dimensionIndex-2}`;
+
+            if (isChecked) {
+                console.log(`✓ ${dimensionName} axis selected for rotation`);
+            } else {
+                console.log(`✗ ${dimensionName} axis deselected from rotation`);
+            }
+
+            // Get all currently selected dimensions
+            const selectedDimensions = getSelectedDimensions();
+            console.log('Currently selected dimensions:', selectedDimensions);
+
+            // Update rotation if currently rotating
+            if (isRevolving) {
+                console.log('Rotation is active - updating rotation axes');
+                updateActiveRotation(selectedDimensions);
+            }
+            rotationMatrix = createIntuitiveAxisRotationMatrix(
+                    currentCollection.getAllPoints()[0].getDimensions(),
+                    getSelectedDimensions(),
+                    currentRotationStep
+            );
+
+
+            // Update UI state
+            updateRotationButtonState();
+        }
+
+        // Get all currently selected dimension indices
+        function getSelectedDimensions() {
+            const selectedDimensions = [];
+            const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]:checked');
+
+            checkboxes.forEach(checkbox => {
+                selectedDimensions.push(parseInt(checkbox.value));
+            });
+
+            return selectedDimensions.sort((a, b) => a - b); // Sort for consistency
+        }
+
+        // Update the rotation button state based on selected dimensions
+        function updateRotationButtonState() {
+            const revolveBtn = document.getElementById('revolveBtn');
+            const selectedDimensions = getSelectedDimensions();
+
+            if (selectedDimensions.length === 0) {
+                revolveBtn.disabled = true;
+                revolveBtn.textContent = 'Select Axes to Rotate';
+                revolveBtn.style.backgroundColor = '#ccc';
+                revolveBtn.style.cursor = 'not-allowed';
+            } else {
+                revolveBtn.disabled = false;
+                revolveBtn.style.cursor = 'pointer';
+
+                if (isRevolving) {
+                    revolveBtn.textContent = 'Stop Revolving';
+                    revolveBtn.style.backgroundColor = '#dc3545';
+                } else {
+                    const axesNames = selectedDimensions.map(dim => {
+                        if (dim === 0) return 'X';
+                        if (dim === 1) return 'Y';
+                        if (dim === 2) return 'Z';
+                        return `W${dim-2}`;
+                    }).join(', ');
+                    revolveBtn.textContent = `Rotate around ${axesNames}`;
+                    revolveBtn.style.backgroundColor = '#007bff';
+                }
+            }
+        }
+
+        // Update active rotation with new dimension selection
+        function updateActiveRotation(selectedDimensions) {
+            if (selectedDimensions.length === 0) {
+                console.log('No dimensions selected - stopping rotation');
+                stopRevolving();
+                return;
+            }
+
+            // The rotation will automatically use the new selected dimensions
+            // on the next animation frame since startRevolving reads from checkboxes
+            console.log('Rotation will continue with new axes:', selectedDimensions);
+        }
+
+        // Add current position to each point's trail
+        function updateTrails(points3D) {
+            const showTrails = document.getElementById('showTrails').checked;
+            if (!showTrails) return;
+
+            // Get current zoom and canvas settings
+            const canvas = document.getElementById('canvas3d');
+            const zoomSlider = document.getElementById('zoomSlider');
+            const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
+            const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            points3D.forEach((point, index) => {
+                const canvasX = centerX + (point.x * fixedScale);
+                const canvasY = centerY + (point.y * fixedScale);
+
+                // Get or create trail for this point
+                if (!pointTrails.has(index)) {
+                    pointTrails.set(index, []);
+                }
+
+                const trail = pointTrails.get(index);
+
+                // Add current position to trail
+                trail.push({
+                    x: canvasX,
+                    y: canvasY,
+                    timestamp: Date.now(),
+                    distance: point.distanceFromViewpoint
+                });
+
+                // Limit trail length
+                if (trail.length > maxTrailLength) {
+                    trail.shift(); // Remove oldest point
+                }
+            });
+        }
+
+
+        // Draw trails for all points
+        function drawTrails(ctx) {
+            const showTrails = document.getElementById('showTrails').checked;
+            if (!showTrails || pointTrails.size === 0) return;
+
+            const canvas = document.getElementById('canvas3d');
+
+            pointTrails.forEach((trail) => {
+                if (trail.length < 2) return; // Need at least 2 points to draw a trail
+
+                // Draw trail as connected line segments with fading
+                for (let i = 1; i < trail.length; i++) {
+                    const prevPoint = trail[i - 1];
+                    const currentPoint = trail[i];
+
+                    // Calculate fade based on position in trail (newer = more opaque)
+                    const fadeRatio = i / trail.length;
+                    const opacity = fadeRatio * 0.8; // Max opacity of 0.8
+
+                    // Calculate color based on distance (same as main points)
+                    const distances = trail.map(p => p.distance);
+                    const minDistance = Math.min(...distances);
+                    const maxDistance = Math.max(...distances);
+                    const distanceRange = maxDistance - minDistance || 1;
+
+                    const normalizedDistance = distanceRange > 0 ?
+                            1 - ((currentPoint.distance - minDistance) / distanceRange) : 0.5;
+
+                    const red = Math.floor(255 * normalizedDistance);
+                    const blue = Math.floor(255 * (1 - normalizedDistance));
+                    const green = Math.floor(50 * Math.sin(normalizedDistance * Math.PI));
+
+                    // Only draw if both points are reasonably close to viewport
+                    const margin = 100; // Allow some off-screen drawing
+                    if (currentPoint.x >= -margin && currentPoint.x <= canvas.width + margin &&
+                            currentPoint.y >= -margin && currentPoint.y <= canvas.height + margin) {
+
+                        ctx.beginPath();
+                        ctx.moveTo(prevPoint.x, prevPoint.y);
+                        ctx.lineTo(currentPoint.x, currentPoint.y);
+
+                        ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${opacity})`;
+                        ctx.lineWidth = 1 + fadeRatio; // Thicker lines for newer trail segments
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw small dots at trail points for better visibility
+                trail.forEach((trailPoint, i) => {
+                    if (i % 3 !== 0) return; // Only draw every 3rd point to avoid clutter
+
+                    const fadeRatio = i / trail.length;
+                    const opacity = fadeRatio * 0.6;
+
+                    if (opacity > 0.1) { // Only draw if reasonably visible
+
+                        ctx.beginPath();
+                        ctx.arc(trailPoint.x, trailPoint.y, 1, 0, 2 * Math.PI);
+                        ctx.fillStyle = `rgba(128, 128, 128, ${opacity})`;
+                        ctx.fill();
+                    }
+                });
+            });
+        }
+
+        window.updateTrailLength = function() {
+            try {
+                const slider = document.getElementById('trailLengthSlider');
+                const valueDisplay = document.getElementById('trailLengthValue');
+
+                maxTrailLength = parseInt(slider.value);
+                valueDisplay.textContent = maxTrailLength.toString();
+
+                // Trim existing trails to new length if they're longer
+                pointTrails.forEach((trail) => {
+                    if (trail.length > maxTrailLength) {
+                        trail.splice(0, trail.length - maxTrailLength);
+                    }
+                });
+
+                console.log('Trail length updated to:', maxTrailLength);
+            } catch (error) {
+                console.error('Error updating trail length:', error);
+            }
+        }
+    </script>
+</body>
+</html>
