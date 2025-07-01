@@ -3,6 +3,7 @@ import NDimensionalPoint from './NDimensionalPoint.js';
 class PointCollection {
     constructor() {
         this.points = [];
+        this.lines = [];
     }
 
     // Add a point to the collection
@@ -11,6 +12,18 @@ class PointCollection {
             throw new Error('Only NDimensionalPoint instances can be added');
         }
         this.points.push(point);
+    }
+
+    // Add a line to the collection
+    // use the index of the points in the array to create a line
+    addLine(pointa, pointb) {
+        if (typeof pointa !== 'number' || isNaN(pointa)) {
+            throw new Error('First parameter must be a valid number');
+        }
+        if (typeof pointb !== 'number' || isNaN(pointb)) {
+            throw new Error('Second parameter must be a valid number');
+        }
+        this.lines.push([pointa, pointb]);
     }
 
     // Remove a point at specific index
@@ -42,6 +55,7 @@ class PointCollection {
     // Clear all points
     clear() {
         this.points = [];
+        this.lines = [];
     }
 
     // Generate multiple random points
@@ -97,6 +111,17 @@ class PointCollection {
     // String representation
     toString() {
         return this.points.map((point, index) => `${index}: ${point.toString()}`).join('\n');
+    }
+
+    // Create a deep copy of this PointCollection
+    copy() {
+        const newCollection = new PointCollection();
+        for (const point of this.points) {
+            newCollection.addPoint(point.copy()); // Assuming NDimensionalPoint has a copy method
+        }
+        // Copy lines array
+        newCollection.lines = [...this.lines];
+        return newCollection;
     }
 }
 

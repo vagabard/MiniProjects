@@ -161,7 +161,7 @@ class NDimensionalPoint {
     }
 
     // Create a copy of the point
-    clone() {
+    copy() {
         return new NDimensionalPoint(...this.coordinates);
     }
 

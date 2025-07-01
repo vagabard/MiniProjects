@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            /*max-width: 600px;*/
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -28,6 +28,16 @@
 
         .form-group {
             margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-row .input-group {
+            flex: 1;
         }
 
         label {
@@ -107,12 +117,54 @@
         #revolveBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed !important;
+            background: linear-gradient(145deg, #ccc, #aaa) !important;
+            transform: none !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        #revolveBtn:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+
+        #revolveBtn:hover:not(:disabled)[style*="linear-gradient(145deg, #4a90e2"] {
+            background: linear-gradient(145deg, #5ba0f2, #4080cd) !important;
+            box-shadow: 0 12px 24px rgba(74, 144, 226, 0.5), 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+
+        #revolveBtn:hover:not(:disabled)[style*="linear-gradient(145deg, #dc3545"] {
+            background: linear-gradient(145deg, #e74c3c, #d63031) !important;
+            box-shadow: 0 12px 24px rgba(220, 53, 69, 0.5), 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+
+        #revolveBtn:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        #revolveBtn:active:not(:disabled)[style*="linear-gradient(145deg, #4a90e2"] {
+            box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important;
+        }
+
+        #revolveBtn:active:not(:disabled)[style*="linear-gradient(145deg, #dc3545"] {
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important;
         }
 
         #dimensionCheckboxes {
             border-top: 1px solid #ddd;
             padding-top: 20px;
             margin-top: 20px;
+        }
+
+        #checkboxContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         #canvas3d {
@@ -122,7 +174,6 @@
             margin-left: auto;
             margin-right: auto;
             width: 100%;
-            max-width: 500px;
             height: auto;
             box-sizing: border-box;
         }
@@ -171,28 +222,165 @@
             #speedSlider {
                 width: 200px;
             }
+
+            .input-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .button-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        /* Main container for input boxes and generate/tesseract buttons */
+        .input-and-buttons-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive controls container */
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            align-items: flex-start;
+        }
+
+        .controls-container .button-row {
+            margin-top: 0;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .controls-container #dimensionCheckboxes {
+            flex: 1;
+            min-width: 250px;
+            margin-top: 0;
+        }
+
+        .controls-container #dimensionCheckboxes #revolveBtn {
+            margin-top: 10px;
+        }
+
+        /* On smaller screens, stack vertically */
+        @media (max-width: 800px) {
+            .controls-container {
+                flex-direction: column;
+            }
+
+            .controls-container .button-row,
+            .controls-container #dimensionCheckboxes {
+                min-width: 100%;
+            }
+        }
+
+        .button-row button {
+            flex: 1;
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            color: white;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            position: relative;
+
+            /* 3D effect */
+            box-shadow:
+                0 8px 16px rgba(74, 144, 226, 0.4),
+                0 4px 8px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .button-row button:hover {
+            background: linear-gradient(145deg, #5ba0f2, #4080cd);
+            transform: translateY(-3px);
+            box-shadow:
+                0 12px 24px rgba(74, 144, 226, 0.5),
+                0 6px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .button-row button:active {
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 8px rgba(74, 144, 226, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .button-row button:nth-child(2) {
+            background: linear-gradient(145deg, #5cb85c, #449d44);
+            box-shadow:
+                0 8px 16px rgba(92, 184, 92, 0.4),
+                0 4px 8px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .button-row button:nth-child(2):hover {
+            background: linear-gradient(145deg, #6cc86c, #559d55);
+            box-shadow:
+                0 12px 24px rgba(92, 184, 92, 0.5),
+                0 6px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .button-row button:nth-child(2):active {
+            box-shadow:
+                0 4px 8px rgba(92, 184, 92, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Point Generator</h1>
+        <h2>n Dimensional rotation</h2>
         <form>
-            <div class="form-group">
-                <label for="numPoints">Specify number of points:</label>
-                <input type="number" id="numPoints" name="numPoints" min="1" placeholder="Enter number of points">
+            <div class="input-and-buttons-container">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="numPoints">Specify number of points:</label>
+                        <input type="number" id="numPoints" name="numPoints" min="1" placeholder="Enter number of points">
+                    </div>
+                    <div class="input-group">
+                        <label for="numDimensions">Specify number of dimensions:</label>
+                        <input type="number" id="numDimensions" name="numDimensions" min="1" placeholder="Enter number of dimensions" onchange="updateDimensionCheckboxes()">
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button type="button" onclick="generatePoints()">Generate Random Points</button>
+                    <button type="button" onclick="generateTesseract()">Generate Tesseract (4D Cube)</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="numDimensions">Specify number of dimensions:</label>
-                <input type="number" id="numDimensions" name="numDimensions" min="1" placeholder="Enter number of dimensions" onchange="updateDimensionCheckboxes()">
-            </div>
-            <button type="button" onclick="generatePoints()">Generate</button>
 
-            <div id="dimensionCheckboxes" class="form-group" style="display: none;">
-                <label>Select axes to rotate around:</label>
-                <div id="checkboxContainer"></div>
-                <button type="button" id="revolveBtn" onclick="toggleRevolve()" style="margin-top: 10px;">Start Revolving</button>
-                <div class="animation-info">Tip: Press spacebar to start/stop rotation</div>
+            <div class="controls-container">
+                <div id="dimensionCheckboxes" class="form-group" style="display: none;">
+                    <label>Select axes to rotate around:</label>
+                    <div id="checkboxContainer"></div>
+                    <button type="button" id="revolveBtn" onclick="toggleRevolve()" style="margin-top: 10px; background: linear-gradient(145deg, #4a90e2, #357abd); color: white; padding: 16px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.8px; position: relative; box-shadow: 0 8px 16px rgba(74, 144, 226, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.4); border-bottom: 2px solid rgba(0, 0, 0, 0.3);">Start Revolving</button>
+                    <div class="animation-info">Tip: Press spacebar to start/stop rotation</div>
+                </div>
             </div>
         </form>
     </div>
@@ -220,39 +408,46 @@
         <canvas id="canvas3d"></canvas>
         <p><small>Points sized by depth: closer = larger, farther = smaller</small></p>
     </div>
-    <script type="module" src="NDimensionalPoint.js"></script>
-    <script type="module" src="PointCollection.js"></script>
     <script type="module">
         let NDimensionalPoint, PointCollection, currentCollection ;
 
         // Animation variables
         let isRevolving = false;
         let animationId = null;
-        const BASE_ROTATION_STEP = Math.PI / 360; // 0.5 degrees in radians
+        const BASE_ROTATION_STEP = 1 / 180; // 0.5 degrees in radians
         let rotationSpeed = 1.0; // Speed multiplier
         let currentRotationStep = BASE_ROTATION_STEP;
+        let currentRotationAmount = 0;
+        let baseCollection ;
         let rotationMatrix;
         // Trail system variables
         let pointTrails = new Map(); // Store trails for each point
         let maxTrailLength = 150; // Maximum number of trail points to keep (adjustable by user)
+        let nearestApproach = 1000;
         // Load modules with error handling
         try {
+            console.log('Loading NDimensionalPoint.js...');
             const ndPointModule = await import('./NDimensionalPoint.js');
+            console.log('NDimensionalPoint.js loaded successfully');
+
+            console.log('Loading PointCollection.js...');
             const collectionModule = await import('./PointCollection.js');
+            console.log('PointCollection.js loaded successfully');
+
             NDimensionalPoint = ndPointModule.default;
             PointCollection = collectionModule.default;
             console.log('Modules loaded successfully');
         } catch (error) {
             console.error('Error loading modules:', error);
-            alert('Error loading JavaScript modules. Make sure NDimensionalPoint.js and PointCollection.js exist in the same directory.');
+            console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
+            alert(`Error loading JavaScript modules: ${error.message}\n\nMake sure NDimensionalPoint.js and PointCollection.js exist in the same directory.`);
         }
 
         window.generatePoints = function() {
             try {
                 const numPoints = document.getElementById('numPoints').value;
                 const numDimensions = document.getElementById('numDimensions').value;
-
-                console.log('Generate clicked:', { numPoints, numDimensions });
 
                 if (!numPoints || numPoints < 1) {
                     alert('Please enter a valid number of points (1 or greater)');
@@ -271,10 +466,8 @@
 
                 // Create PointCollection and generate points within unit sphere
                 currentCollection = new PointCollection();
+                pointTrails = new Map(); // Clear previous trails
                 generatePointsInUnitSphere(parseInt(numPoints), parseInt(numDimensions));
-
-                console.log(`Generated ${numPoints} points with ${numDimensions} dimensions within unit distance:`);
-                console.log(currentCollection.toString());
 
                 // Show dimension checkboxes
                 updateDimensionCheckboxes();
@@ -282,7 +475,7 @@
 
                 // Show and render 3D visualization
                 document.getElementById('canvasContainer').style.display = 'block';
-                render3DPoints();
+                render3DPoints(currentCollection);
 
                 alert(`Successfully generated ${numPoints} points with ${numDimensions} dimensions within unit distance of origin!`);
             } catch (error) {
@@ -295,8 +488,6 @@
             try {
                 const numDimensions = document.getElementById('numDimensions').value;
                 const container = document.getElementById('checkboxContainer');
-
-                console.log('Updating checkboxes for dimensions:', numDimensions);
 
                 if (!container) {
                     console.error('Checkbox container not found');
@@ -343,26 +534,30 @@
                     checkboxItem.appendChild(label);
                     container.appendChild(checkboxItem);
                 }
-
-                console.log('Checkboxes created successfully');
             } catch (error) {
                 console.error('Error updating checkboxes:', error);
             }
         }
 
         function getCanvasInformation(canvas) {
-
             // Make canvas square and responsive
             const container = document.getElementById('canvasContainer');
             const containerWidth = container.clientWidth;
-            const maxSize = Math.min(containerWidth - 40, 500);
+
+            // Calculate available height (window height minus other elements)
+            const windowHeight = window.innerHeight;
+            const canvasTop = canvas.getBoundingClientRect().top;
+            const availableHeight = windowHeight - canvasTop - 40; // 40px for bottom margin
+
+            // Use the smaller of available width or height to maintain square aspect ratio
+            const maxSize = Math.min(containerWidth - 40, availableHeight);
 
             canvas.width = maxSize;
             canvas.height = maxSize;
             canvas.style.width = maxSize + 'px';
             canvas.style.height = maxSize + 'px';
 
-             return maxSize;
+            return maxSize;
         }
 
         function getViewpoint(){
@@ -404,7 +599,7 @@
         }
 
          // 3D rendering functions
-        function render3DPoints() {
+        function render3DPoints(currentCollection) {
             try {
                 const canvas = document.getElementById('canvas3d');
                 if (!canvas) {
@@ -438,10 +633,13 @@
                 const centerY = canvas.height / 2;
 
                 // Sort points by distance from viewpoint (farthest to nearest for proper rendering)
-                points3D.sort((a, b) => b.distanceFromViewpoint - a.distanceFromViewpoint);
+                //points3D.sort((a, b) => b.distanceFromViewpoint - a.distanceFromViewpoint);
 
                 // Draw trails first (behind points)
                 drawTrails(ctx);
+
+                // Draw lines
+                drawLines(ctx, points3D);
 
                 // Draw origin crosshairs - these should always be at canvas center
                 ctx.strokeStyle = '#eee';
@@ -461,7 +659,7 @@
                 let totalPoints = points3D.length;
 
                 // Find min/max distances for normalization
-                const distances = points3D.map(p => p.distanceToOrigin);
+                const distances = points3D.slice(0,-1).map(p => p.distanceToOrigin);
                 const farthestFromOrigin = Math.max(...distances);
                 const nearestToOrigin = Math.min(...distances);
                 const minDistance = viewpoint.z-farthestFromOrigin;
@@ -473,7 +671,7 @@
                     // Map coordinates with fixed scale - origin (0,0) always at canvas center
                     const canvasX = centerX + (point.x * fixedScale);
                     const canvasY = centerY + (point.y * fixedScale);
-                    if (point.x == 0 && point.y ==0 && point.z == 0) {
+                    if (point.x === 0 && point.y ===0 && point.z === 0) {
                         const color = `rgb(${0}, ${255}, ${0})`;
                         ctx.beginPath();
                         ctx.arc(canvasX, canvasY, 3, 0, 2 * Math.PI);
@@ -508,30 +706,6 @@
 
                         const color = `rgb(${red}, ${green}, ${blue})`;
 
-                        // Alternative smoother transition using HSL
-                        // const hue = 240 * (1 - normalizedDistance); // 0 (red) to 240 (blue)
-                        // const saturation = 80 + 20 * normalizedDistance; // More saturated when close
-                        // const lightness = 40 + 40 * normalizedDistance; // Brighter when close
-                        // const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-                        // Draw point with glow effect for closer points (red ones)
-                        // if (normalizedDistance > 0.6) {
-                        //     // Add red glow for very close points
-                        //     const glowSize = pointSize * (1 + normalizedDistance);
-                        //     const glowIntensity = normalizedDistance * 0.3;
-                        //
-                        //     const gradient = ctx.createRadialGradient(
-                        //         canvasX, canvasY, 0,
-                        //         canvasX, canvasY, glowSize
-                        //     );
-                        //     gradient.addColorStop(0, `rgba(255, 0, 0, ${glowIntensity})`);
-                        //     gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
-                        //
-                        //     ctx.beginPath();
-                        //     ctx.arc(canvasX, canvasY, glowSize, 0, 2 * Math.PI);
-                        //     ctx.fillStyle = gradient;
-                        //     ctx.fill();
-                        // }
 
                         // Draw main point
                         ctx.beginPath();
@@ -540,11 +714,6 @@
                         ctx.fill();
 
                         // Add border for definition - darker for close points, lighter for far
-                        if (normalizedDistance > 0.6) {
-                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-                            ctx.lineWidth = 1;
-                            ctx.stroke();
-                        }
                         const borderIntensity = 100 + 155 * normalizedDistance;
                         ctx.strokeStyle = `rgb(${borderIntensity}, ${borderIntensity}, ${borderIntensity})`;
                         ctx.lineWidth = 0.5 + normalizedDistance * 0.5;
@@ -560,7 +729,9 @@
                 // Add color legend
                 ctx.fillStyle = '#333';
                 ctx.font = Math.max(10, maxSize * 0.02) + 'px Arial';
-                ctx.fillText(`Visible: ${visiblePoints}/${totalPoints} points`, 10, canvas.height - 75);
+                ctx.fillText(`Visible: ${visiblePoints}/${totalPoints} points`, 10, canvas.height - 90);
+                const lineCount = currentCollection.lines ? currentCollection.lines.length : 0;
+                ctx.fillText(`Lines: ${lineCount}`, 10, canvas.height - 75);
                 ctx.fillText(`Distance range from origin: ${farthestFromOrigin.toFixed(2)} - ${nearestToOrigin.toFixed(2)}`, 10, canvas.height - 60);
                 ctx.fillText(`Viewpoint: (0, 0, ${viewpoint.z})`, 10, canvas.height - 45);
                 ctx.fillText(`Scale: ${fixedScale.toFixed(1)}px/unit`, 10, canvas.height - 30);
@@ -625,11 +796,12 @@
             return matrix;
         }
 
-        function createGivensRotationMatrix(totalDimensions, dim1, dim2, angle) {
+        function createGivensRotationMatrix(totalDimensions, dim1, dim2, piCoefficient) {
             const matrix = createIdentityMatrix(totalDimensions);
 
-            const cos_angle = Math.cos(angle);
-            const sin_angle = Math.sin(angle);
+            // using pi Coefficient everywhere to avoid floating errors, using fixed precision because things that should be 0 are not 0
+            const cos_angle = Number(Math.cos(piCoefficient*Math.PI).toFixed(10)) ;
+            const sin_angle = Number(Math.sin(piCoefficient*Math.PI).toFixed(10)) ;
 
             matrix[dim1][dim1] = cos_angle;
             matrix[dim1][dim2] = -sin_angle;
@@ -639,7 +811,7 @@
             return matrix;
         }
 
-        function multiplyMatrices(matrixA, matrixB, result) {
+        function multiplyMatrices(matrixA, matrixB) {
             const n = matrixA.length;
             const temp = [];
 
@@ -652,13 +824,49 @@
                     }
                 }
             }
-
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    result[i][j] = temp[i][j];
-                }
-            }
+            return temp
         }
+
+        // Most intuitive approach: rotate around axis using Rodrigues' rotation formula concept
+        function createIntuitiveAxisRotationMatrix(totalDimensions, axisIndices, piCoefficient, showDebug = false) {
+            let matrix = createIdentityMatrix(totalDimensions);
+            axisIndices = axisIndices.sort()// make sure we always rotate in the same order. Otherwise, the correct behaviour is to go haywire.
+            axisIndices.forEach(axisIndex => {
+                // For each axis, rotate all other coordinates around it
+                // This creates a "barrel roll" effect around the specified axis
+
+                // Get all dimensions except the axis
+                const otherDimensions = [];
+                for (let i = 0; i < totalDimensions; i++) {
+                    if (i !== axisIndex) {
+                        otherDimensions.push(i);
+                    }
+                }
+
+                // Rotate pairs of other dimensions
+                for (let i = 0; i < otherDimensions.length - 1; i += 1) {
+                    for (let j = i+1; j < otherDimensions.length ; j += 1) {
+                        if (i === j) {
+                            continue;
+                        }
+                        const dim1 = otherDimensions[i];
+                        const dim2 = otherDimensions[j];
+                        const givensRotationMatrix = createGivensRotationMatrix(totalDimensions, dim1, dim2, piCoefficient);
+                        if (showDebug){
+                            console.log(`Givens rotation matrix for angle ${piCoefficient}  dimensions ${dim1} and ${dim2}:\n`, givensRotationMatrix.join('\n'));
+                        }
+                        matrix = multiplyMatrices(matrix, givensRotationMatrix);
+                    }
+
+                }
+                if (showDebug){
+                    console.log(`Matrix after rotating for angle ${piCoefficient} around axis ${axisIndex}:\n`, matrix.join('\n'));
+                }
+            });
+
+            return matrix;
+        }
+
 
         function multiplyPointByMatrix(point, matrix) {
             const coords = point.getCoordinates();
@@ -704,28 +912,38 @@
             }
         }
 
-        function startRevolving(selectedDimensions) {
+        function startRevolving() {
+//            createIntuitiveAxisRotationMatrix(baseCollection.getAllPoints()[0].getDimensions(), getSelectedDimensions(), 1/2,true);
+//            createIntuitiveAxisRotationMatrix(baseCollection.getAllPoints()[0].getDimensions(), getSelectedDimensions(), 3/2,true);
             isRevolving = true;
             document.getElementById('revolveBtn').textContent = 'Stop Revolving';
-            document.getElementById('revolveBtn').style.backgroundColor = '#dc3545';
+            document.getElementById('revolveBtn').style.background = 'linear-gradient(145deg, #dc3545, #c82333)';
+            document.getElementById('revolveBtn').style.boxShadow = '0 8px 16px rgba(220, 53, 69, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
 
             // No need to calculate centroid - we're rotating around origin (0,0,0...)
-
             function animateRotation() {
                 if (!isRevolving) return;
 
                 try {
                     // Rotate around origin - no translation needed
-                    console.log('before rotation: ',currentRotationStep,'\n', currentCollection.toString());
                     currentCollection = rotateCollectionAroundOrigin(
                         currentCollection,
-                        selectedDimensions,
+                        getSelectedDimensions(),
                         currentRotationStep
                     );
-                    console.log('after rotation:', currentCollection.toString());
+                    let distanceOfFirstPointToStart = currentCollection.getAllPoints()[0].distanceTo(baseCollection.getAllPoints()[0]);
+                    // this is some exploratory code to find how many multiples of pi we need to rotate to get back to the start.  In 3d it's 2pi, but higher dimensions are more complex
+                    if (distanceOfFirstPointToStart < .1) {
+                        if (nearestApproach < distanceOfFirstPointToStart) {
+                            nearestApproach = 1000;
+                            //console.log('distance of first point ', distanceOfFirstPointToStart, '  rotation amount ', currentRotationAmount);
+                        }else {
+                            nearestApproach = distanceOfFirstPointToStart;
+                        }
+                    }
+                    currentRotationAmount += currentRotationStep;
 
-
-                    render3DPoints();
+                    render3DPoints(currentCollection);
                     animationId = requestAnimationFrame(animateRotation);
 
                 } catch (error) {
@@ -752,13 +970,16 @@
         // Function to rotate collection around origin (no translation needed)
         function rotateCollectionAroundOrigin(collection) {
             const rotatedCollection = new PointCollection();
-
-
-            collection.getAllPoints().forEach(point => {
-                // Direct rotation around origin - no translation needed
+            for (let i = 0; i < collection.getAllPoints().length; i++) {
+                const point = collection.getAllPoints()[i];
                 const rotatedPoint = multiplyPointByMatrix(point, rotationMatrix);
                 rotatedCollection.addPoint(rotatedPoint);
-            });
+            }
+
+            // Preserve lines from original collection
+            if (collection.lines) {
+                rotatedCollection.lines = collection.lines;
+            }
 
             return rotatedCollection;
         }
@@ -778,44 +999,13 @@
             }
         });
 
+        // Add window resize handler to update canvas size
+        window.addEventListener('resize', function() {
+            if (currentCollection && currentCollection.size() > 0) {
+                render3DPoints(currentCollection);
+            }
+        });
 
-        // Most intuitive approach: rotate around axis using Rodrigues' rotation formula concept
-        function createIntuitiveAxisRotationMatrix(totalDimensions, axisIndices, angle) {
-            let matrix = createIdentityMatrix(totalDimensions);
-
-            axisIndices.forEach(axisIndex => {
-                // For each axis, rotate all other coordinates around it
-                // This creates a "barrel roll" effect around the specified axis
-
-                // Get all dimensions except the axis
-                const otherDimensions = [];
-                for (let i = 0; i < totalDimensions; i++) {
-                    if (i !== axisIndex) {
-                        otherDimensions.push(i);
-                    }
-                }
-
-                // Rotate pairs of other dimensions
-                for (let i = 0; i < otherDimensions.length - 1; i += 1) {
-                    for (let j = 1; j < otherDimensions.length ; j += 1) {
-                        if (i === j) {
-                            continue;
-                        }
-                        const dim1 = otherDimensions[i];
-                        const dim2 = otherDimensions[j];
-                        const rotationMatrix = createGivensRotationMatrix(totalDimensions, dim1, dim2, angle);
-                        console.log(`Rotating dimensions ${dim1} and ${dim2} around axis ${axisIndex} by ${angle} radians \n` + rotationMatrix.join('\n'));
-                        const newMatrix = createIdentityMatrix(totalDimensions);
-                        multiplyMatrices(matrix, rotationMatrix, newMatrix);
-                        matrix = newMatrix;
-                    }
-
-                }
-            });
-            console.log(`Total rotation matrix \n` + matrix.join('\n'));
-
-            return matrix;
-        }
 
         window.updateRotationSpeed = function() {
             try {
@@ -825,13 +1015,13 @@
                 rotationSpeed = parseFloat(slider.value);
                 currentRotationStep = BASE_ROTATION_STEP * rotationSpeed;
                 speedDisplay.textContent = rotationSpeed.toFixed(1) + 'x';
+                nearestApproach = 1000;
                 rotationMatrix = createIntuitiveAxisRotationMatrix(
                         currentCollection.getAllPoints()[0].getDimensions(),
                         getSelectedDimensions(),
                         currentRotationStep
                 );
 
-                console.log('Rotation speed updated to:', rotationSpeed);
             } catch (error) {
                 console.error('Error updating rotation speed:', error);
             }
@@ -847,7 +1037,7 @@
 
                 // Re-render with new zoom
                 if (currentCollection && currentCollection.size() > 0) {
-                    render3DPoints();
+                    render3DPoints(currentCollection);
                 }
 
                 console.log('Zoom level updated to:', zoomLevel);
@@ -861,12 +1051,6 @@
             let pointsGenerated = 0;
             let attempts = 0;
             currentCollection.clear();
-            // add the origin here so it's rendered with the rest of the points
-            const originCoordinates = [];
-            for (let i = 0; i < dimensions; i++) {
-                originCoordinates.push(0);
-            }
-            currentCollection.addPoint(new NDimensionalPoint(...originCoordinates));
             const maxAttempts = numPoints * 100; // Prevent infinite loops
 
             while (pointsGenerated < numPoints && attempts < maxAttempts) {
@@ -892,36 +1076,36 @@
                 console.warn(`Only generated ${pointsGenerated} out of ${numPoints} requested points after ${maxAttempts} attempts`);
                 console.warn(`This can happen in high dimensions where the unit sphere occupies a very small fraction of the unit cube`);
             }
+//            add the origin here so it's rendered with the rest of the points
+            const originCoordinates = [];
+            for (let i = 0; i < dimensions; i++) {
+                originCoordinates.push(0);
+            }
+            currentCollection.addPoint(new NDimensionalPoint(...originCoordinates));
 
             console.log(`Generated ${pointsGenerated} points in ${attempts} attempts (${(pointsGenerated/attempts*100).toFixed(2)}% success rate)`);
         }
 
         // Function called when dimension checkbox is changed
-        function onDimensionCheckboxChange(dimensionIndex, isChecked) {
-            console.log(`Dimension ${dimensionIndex} checkbox ${isChecked ? 'checked' : 'unchecked'}`);
+        function onDimensionCheckboxChange() {
 
             // Get dimension name for logging
-            let dimensionName;
-            if (dimensionIndex === 0) dimensionName = 'X';
-            else if (dimensionIndex === 1) dimensionName = 'Y';
-            else if (dimensionIndex === 2) dimensionName = 'Z';
-            else dimensionName = `W${dimensionIndex-2}`;
-
-            if (isChecked) {
-                console.log(`✓ ${dimensionName} axis selected for rotation`);
-            } else {
-                console.log(`✗ ${dimensionName} axis deselected from rotation`);
-            }
+            // let dimensionName;
+            // if (dimensionIndex === 0) dimensionName = 'X';
+            // else if (dimensionIndex === 1) dimensionName = 'Y';
+            // else if (dimensionIndex === 2) dimensionName = 'Z';
+            // else dimensionName = `W${dimensionIndex-2}`;
 
             // Get all currently selected dimensions
             const selectedDimensions = getSelectedDimensions();
-            console.log('Currently selected dimensions:', selectedDimensions);
 
             // Update rotation if currently rotating
             if (isRevolving) {
-                console.log('Rotation is active - updating rotation axes');
                 updateActiveRotation(selectedDimensions);
             }
+            baseCollection = currentCollection.copy();
+            currentRotationAmount = 0;
+            nearestApproach = 1000;
             rotationMatrix = createIntuitiveAxisRotationMatrix(
                     currentCollection.getAllPoints()[0].getDimensions(),
                     getSelectedDimensions(),
@@ -953,15 +1137,17 @@
             if (selectedDimensions.length === 0) {
                 revolveBtn.disabled = true;
                 revolveBtn.textContent = 'Select Axes to Rotate';
-                revolveBtn.style.backgroundColor = '#ccc';
+                revolveBtn.style.background = 'linear-gradient(145deg, #ccc, #aaa)';
                 revolveBtn.style.cursor = 'not-allowed';
+                revolveBtn.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
             } else {
                 revolveBtn.disabled = false;
                 revolveBtn.style.cursor = 'pointer';
 
                 if (isRevolving) {
                     revolveBtn.textContent = 'Stop Revolving';
-                    revolveBtn.style.backgroundColor = '#dc3545';
+                    revolveBtn.style.background = 'linear-gradient(145deg, #dc3545, #c82333)';
+                    revolveBtn.style.boxShadow = '0 8px 16px rgba(220, 53, 69, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
                 } else {
                     const axesNames = selectedDimensions.map(dim => {
                         if (dim === 0) return 'X';
@@ -970,7 +1156,8 @@
                         return `W${dim-2}`;
                     }).join(', ');
                     revolveBtn.textContent = `Rotate around ${axesNames}`;
-                    revolveBtn.style.backgroundColor = '#007bff';
+                    revolveBtn.style.background = 'linear-gradient(145deg, #4a90e2, #357abd)';
+                    revolveBtn.style.boxShadow = '0 8px 16px rgba(74, 144, 226, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)';
                 }
             }
         }
@@ -1000,6 +1187,7 @@
             const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
+
 
             points3D.forEach((point, index) => {
                 const canvasX = centerX + (point.x * fixedScale);
@@ -1093,6 +1281,57 @@
             });
         }
 
+        function drawLines(ctx, points3D) {
+            if (!currentCollection || !currentCollection.lines || currentCollection.lines.length === 0) {
+                return;
+            }
+
+            const canvas = document.getElementById('canvas3d');
+            const zoomSlider = document.getElementById('zoomSlider');
+            const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
+            const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Draw lines
+            currentCollection.lines.forEach(line => {
+ //               console.log("Drawing line:", line);
+                const startIndex = line[0];
+                const endIndex = line[1];
+
+                if (startIndex < points3D.length && endIndex < points3D.length) {
+                    const startPoint = points3D[startIndex];
+                    const endPoint = points3D[endIndex];
+
+                    const startX = centerX + (startPoint.x * fixedScale);
+                    const startY = centerY + (startPoint.y * fixedScale);
+                    const endX = centerX + (endPoint.x * fixedScale);
+                    const endY = centerY + (endPoint.y * fixedScale);
+
+                    // Calculate line color based on average distance of endpoints
+                    const avgDistance = (startPoint.distanceFromViewpoint + endPoint.distanceFromViewpoint) / 2;
+                    const distances = points3D.map(p => p.distanceFromViewpoint);
+                    const minDistance = Math.min(...distances);
+                    const maxDistance = Math.max(...distances);
+                    const distanceRange = maxDistance - minDistance || 1;
+
+                    const normalizedDistance = distanceRange > 0 ?
+                        1 - ((avgDistance - minDistance) / distanceRange) : 0.5;
+
+                    const red = Math.floor(128 + 127 * normalizedDistance);
+                    const blue = Math.floor(128 + 127 * (1 - normalizedDistance));
+                    const green = Math.floor(64);
+
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(endX, endY);
+                    ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, 0.7)`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+            });
+        }
+
         window.updateTrailLength = function() {
             try {
                 const slider = document.getElementById('trailLengthSlider');
@@ -1113,6 +1352,78 @@
                 console.error('Error updating trail length:', error);
             }
         }
+
+        // Add this function after the generatePointsInUnitSphere function
+        function generateTesseract() {
+            try {
+                if (!NDimensionalPoint || !PointCollection) {
+                    alert('JavaScript modules not loaded properly');
+                    return;
+                }
+
+                // Create PointCollection and clear previous data
+                currentCollection = new PointCollection();
+                pointTrails = new Map(); // Clear previous trails
+
+                // Generate tesseract vertices (4D cube with vertices at ±1 for each dimension)
+                const vertices = [];
+                for (let i = 0; i < 16; i++) {
+                    const coords = [
+                        (i & 1) ? 1 : -1,        // x coordinate
+                        (i & 2) ? 1 : -1,        // y coordinate
+                        (i & 4) ? 1 : -1,        // z coordinate
+                        (i & 8) ? 1 : -1         // w coordinate
+                    ];
+                    vertices.push(new NDimensionalPoint(...coords));
+                    currentCollection.addPoint(new NDimensionalPoint(...coords));
+                }
+
+                // Generate tesseract edges
+                // In a tesseract, two vertices are connected if they differ in exactly one coordinate
+                const lines = [];
+                for (let i = 0; i < 16; i++) {
+                    for (let j = i + 1; j < 16; j++) {
+                        // Count how many coordinates differ
+                        //let distanceBetweenPoints = currentCollection.points[i].distanceTo(currentCollection.points[j]);
+                        let diffCount = 0;
+                        if ((i & 1) !== (j & 1)) diffCount++;
+                        if ((i & 2) !== (j & 2)) diffCount++;
+                        if ((i & 4) !== (j & 4)) diffCount++;
+                        if ((i & 8) !== (j & 8)) diffCount++;
+                        //console.log(distanceBetweenPoints, '  distance, diff ', diffCount);
+                        // Connect vertices that differ in exactly one coordinate
+                        if (diffCount === 1) {
+                            lines.push([i, j]);
+                        }
+                    }
+                }
+
+                // Add lines to collection
+                currentCollection.lines = lines;
+
+                // Add origin point for reference
+                currentCollection.addPoint(new NDimensionalPoint(0, 0, 0, 0));
+
+                // Set dimensions input to 4
+                document.getElementById('numDimensions').value = 4;
+                document.getElementById('numPoints').value = 16;
+
+                // Show dimension checkboxes
+                updateDimensionCheckboxes();
+                document.getElementById('dimensionCheckboxes').style.display = 'block';
+
+                // Show and render 3D visualization
+                document.getElementById('canvasContainer').style.display = 'block';
+                render3DPoints(currentCollection);
+
+                alert(`Successfully generated tesseract with 16 vertices and ${lines.length} edges!`);
+            } catch (error) {
+                console.error('Error in generateTesseract:', error);
+                alert('Error generating tesseract: ' + error.message);
+            }
+        }
+
+        window.generateTesseract = generateTesseract;
     </script>
 </body>
 </html>
