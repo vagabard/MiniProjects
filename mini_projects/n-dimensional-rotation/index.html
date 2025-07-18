@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Point Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -69,7 +70,7 @@
             border-radius: 4px;
             font-size: 16px;
             cursor: pointer;
-            width: 100%;
+            width: auto;
             transition: background-color 0.3s;
         }
 
@@ -152,10 +153,11 @@
             border-top: 1px solid #ddd;
             padding-top: 20px;
             margin-top: 20px;
+            display: inline-block;
         }
 
         #checkboxContainer {
-            display: flex;
+            display: inline-flex;
             flex-wrap: wrap;
             gap: 10px;
             padding: 15px;
@@ -170,7 +172,9 @@
         #canvas3d {
             border: 2px solid #ddd;
             margin-top: 10px;
-            display: block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
@@ -178,11 +182,14 @@
             box-sizing: border-box;
         }
 
+        #canvas3d canvas {
+            display: block;
+        }
+
         #canvasContainer {
             text-align: center;
             margin: 20px auto;
             width: 100%;
-            max-width: 1600px;
             padding: 0 20px;
             box-sizing: border-box;
         }
@@ -269,6 +276,35 @@
             margin-top: 10px;
         }
 
+        #visualizationControls {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        #visualizationControls .controls-row {
+            margin-bottom: 10px;
+            gap: 5px;
+        }
+
+        #visualizationControls .controls-row label {
+            min-width: 50px;
+            font-size: 14px;
+        }
+
+        #visualizationControls input[type="range"] {
+            width: auto;
+        }
+
+        #visualizationControls span {
+            min-width: 35px;
+            font-size: 12px;
+        }
+
         /* On smaller screens, stack vertically */
         @media (max-width: 800px) {
             .controls-container {
@@ -276,7 +312,8 @@
             }
 
             .controls-container .button-row,
-            .controls-container #dimensionCheckboxes {
+            .controls-container #dimensionCheckboxes,
+            .controls-container #visualizationControls {
                 min-width: 100%;
             }
         }
@@ -370,7 +407,7 @@
                 </div>
                 <div class="button-row">
                     <button type="button" onclick="generatePoints()">Generate Random Points</button>
-                    <button type="button" onclick="generateTesseract()">Generate Tesseract (4D Cube)</button>
+                    <button type="button" onclick="generateTesseract()">Generate N-Dimensional Cube</button>
                 </div>
             </div>
 
@@ -381,31 +418,34 @@
                     <button type="button" id="revolveBtn" onclick="toggleRevolve()" style="margin-top: 10px; background: linear-gradient(145deg, #4a90e2, #357abd); color: white; padding: 16px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.8px; position: relative; box-shadow: 0 8px 16px rgba(74, 144, 226, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.4); border-bottom: 2px solid rgba(0, 0, 0, 0.3);">Start Revolving</button>
                     <div class="animation-info">Tip: Press spacebar to start/stop rotation</div>
                 </div>
+                <div id="visualizationControls" class="form-group" style="display: none;">
+                    <label>3D Visualization Controls:</label>
+                    <div class="controls-row">
+                        <label for="speedSlider">Speed:</label>
+                        <input type="range" id="speedSlider" min="0" max="2" step="0.01" value="1" oninput="updateRotationSpeed()">
+                        <span id="speedValue">1.0x</span>
+                    </div>
+                    <div class="controls-row">
+                        <label for="zoomSlider">Zoom:</label>
+                        <input type="range" id="zoomSlider" min="0.05" max="1" step="0.01" value="0.5" oninput="updateZoom()">
+                        <span id="zoomValue">0.15</span>
+                    </div>
+                    <div class="controls-row">
+                        <label for="trailLengthSlider">Trail:</label>
+                        <input type="range" id="trailLengthSlider" min="10" max="500" step="10" value="150" oninput="updateTrailLength()">
+                        <span id="trailLengthValue">150</span>
+                    </div>
+                    <div class="controls-row">
+                        <label for="showTrails">Show trails:</label>
+                        <input type="checkbox" id="showTrails">
+                    </div>
+                </div>
             </div>
         </form>
     </div>
     <div id="canvasContainer" style="display: none;">
         <h3>3D Visualization</h3>
-        <div class="controls-row">
-            <label for="speedSlider">Rotation Speed:</label>
-            <input type="range" id="speedSlider" min="0.1" max="20" step="0.1" value="5" oninput="updateRotationSpeed()">
-            <span id="speedValue">1.0x</span>
-        </div>
-        <div class="controls-row">
-            <label for="zoomSlider">Zoom Level:</label>
-            <input type="range" id="zoomSlider" min="0.05" max="0.5" step="0.01" value="0.15" oninput="updateZoom()">
-            <span id="zoomValue">0.15</span>
-        </div>
-        <div class="controls-row">
-            <label for="trailLengthSlider">Trail Length:</label>
-            <input type="range" id="trailLengthSlider" min="10" max="500" step="10" value="150" oninput="updateTrailLength()">
-            <span id="trailLengthValue">150</span>
-        </div>
-        <div class="form-group">
-            <label for="showTrails">Show point trails (trace paths):</label>
-            <input type="checkbox" id="showTrails" >
-        </div>
-        <canvas id="canvas3d"></canvas>
+        <div id="canvas3d"></div>
         <p><small>Points sized by depth: closer = larger, farther = smaller</small></p>
     </div>
     <script type="module">
@@ -414,6 +454,8 @@
         // Animation variables
         let isRevolving = false;
         let animationId = null;
+        let maxDrawingSize = .05;
+        let minDrawingSize = .005;
         const BASE_ROTATION_STEP = 1 / 180; // 0.5 degrees in radians
         let rotationSpeed = 1.0; // Speed multiplier
         let currentRotationStep = BASE_ROTATION_STEP;
@@ -424,6 +466,13 @@
         let pointTrails = new Map(); // Store trails for each point
         let maxTrailLength = 150; // Maximum number of trail points to keep (adjustable by user)
         let nearestApproach = 1000;
+
+        // Three.js variables
+        let scene, camera, renderer;
+        let pointMeshes = [];
+        let lineMeshes = [];
+        let trailMeshes = [];
+        let containerSize = 800;
         // Load modules with error handling
         try {
             console.log('Loading NDimensionalPoint.js...');
@@ -475,6 +524,7 @@
 
                 // Show and render 3D visualization
                 document.getElementById('canvasContainer').style.display = 'block';
+                document.getElementById('visualizationControls').style.display = 'block';
                 render3DPoints(currentCollection);
 
                 alert(`Successfully generated ${numPoints} points with ${numDimensions} dimensions within unit distance of origin!`);
@@ -539,26 +589,56 @@
             }
         }
 
-        function getCanvasInformation(canvas) {
-            // Make canvas square and responsive
-            const container = document.getElementById('canvasContainer');
-            const containerWidth = container.clientWidth;
+        function initThreeJS() {
+            const container = document.getElementById('canvas3d');
+            const containerElement = document.getElementById('canvasContainer');
+            const containerWidth = containerElement.clientWidth;
 
             // Calculate available height (window height minus other elements)
             const windowHeight = window.innerHeight;
-            const canvasTop = canvas.getBoundingClientRect().top;
-            const availableHeight = windowHeight - canvasTop - 40; // 40px for bottom margin
+            const containerTop = container.getBoundingClientRect().top;
+            const availableHeight = windowHeight - containerTop - 20; // 20px for bottom margin
 
             // Use the smaller of available width or height to maintain square aspect ratio
-            const maxSize = Math.min(containerWidth - 40, availableHeight);
+            // Width accounts for 40px total padding (20px each side), height uses smaller margin
+            containerSize = Math.min(containerWidth - 40, availableHeight);
 
-            canvas.width = maxSize;
-            canvas.height = maxSize;
-            canvas.style.width = maxSize + 'px';
-            canvas.style.height = maxSize + 'px';
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f5f5);
 
-            return maxSize;
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            camera.position.set(0, 0, 3);
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(containerSize, containerSize);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Clear container and add renderer
+            container.innerHTML = '';
+            container.appendChild(renderer.domElement);
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            // directionalLight.position.set(10, 10, 5);
+            // directionalLight.castShadow = true;
+            // scene.add(directionalLight);
+            // window.addEventListener('resize', onWindowResized)
+            // onWindowResized();
+            return containerSize;
         }
+
+        // function onWindowResized() {
+        //     camera.aspect = window.innerWidth / window.innerHeight;
+        //     camera.updateProjectionMatrix();
+        //     renderer.setSize(window.innerWidth, window.innerHeight);
+        // }
 
         function getViewpoint(){
             // Define viewpoint position (camera position) - get from slider
@@ -601,188 +681,303 @@
          // 3D rendering functions
         function render3DPoints(currentCollection) {
             try {
-                const canvas = document.getElementById('canvas3d');
-                if (!canvas) {
-                    console.error('Canvas not found');
-                    return;
-                }
-                const maxSize = getCanvasInformation(canvas);
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
                 if (!currentCollection || currentCollection.size() === 0) {
                     return;
                 }
 
+                // Initialize Three.js if not already done
+                if (!scene) {
+                    initThreeJS();
+                }
+
+                // Clear previous meshes
+                clearPreviousMeshes();
+
                 const points = currentCollection.getAllPoints();
-
                 const viewpoint = getViewpoint();
-
                 const points3D = trimNDimensionalPointTo3d(points, viewpoint);
+
                 // Update trails with current positions
                 updateTrails(points3D);
 
-
                 // Get zoom level from slider
                 const zoomSlider = document.getElementById('zoomSlider');
-                const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
-                const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
+                const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.5;
 
-                // Canvas center (this is where origin (0,0) will always be)
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-
-                // Sort points by distance from viewpoint (farthest to nearest for proper rendering)
-                //points3D.sort((a, b) => b.distanceFromViewpoint - a.distanceFromViewpoint);
-
-                // Draw trails first (behind points)
-                drawTrails(ctx);
-
-                // Draw lines
-                drawLines(ctx, points3D);
-
-                // Draw origin crosshairs - these should always be at canvas center
-                ctx.strokeStyle = '#eee';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([3, 3]);
-
-                ctx.beginPath();
-                ctx.moveTo(centerX, 0);
-                ctx.lineTo(centerX, canvas.height);
-                ctx.moveTo(0, centerY);
-                ctx.lineTo(canvas.width, centerY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Count visible points
-                let visiblePoints = 0;
-                let totalPoints = points3D.length;
+                // Update camera position based on viewpoint
+                camera.position.set(0, 0, viewpoint.z);
 
                 // Find min/max distances for normalization
                 const distances = points3D.slice(0,-1).map(p => p.distanceToOrigin);
                 const farthestFromOrigin = Math.max(...distances);
                 const nearestToOrigin = Math.min(...distances);
-                const minDistance = viewpoint.z-farthestFromOrigin;
-                const maxDistance = viewpoint.z+farthestFromOrigin;
-                // when the farthest point is away from the viewpoint, it should be 1, when closest to the viewpoint, it should be max
+                const minDistance = viewpoint.z - farthestFromOrigin;
+                const maxDistance = viewpoint.z + farthestFromOrigin;
                 const distanceRange = maxDistance - minDistance;
-                // Render points with size and color based on viewpoint distance
-                points3D.forEach(point => {
-                    // Map coordinates with fixed scale - origin (0,0) always at canvas center
-                    const canvasX = centerX + (point.x * fixedScale);
-                    const canvasY = centerY + (point.y * fixedScale);
-                    if (point.x === 0 && point.y ===0 && point.z === 0) {
-                        const color = `rgb(${0}, ${255}, ${0})`;
-                        ctx.beginPath();
-                        ctx.arc(canvasX, canvasY, 3, 0, 2 * Math.PI);
-                        ctx.fillStyle = color;
-                        ctx.fill();
 
+                // Create points
+                points3D.forEach((point, index) => {
+                    // Skip origin point for special rendering
+                    if (point.x === 0 && point.y === 0 && point.z === 0) {
+                        createOriginPoint();
                         return;
                     }
 
-                    // Check if point is within viewport (including point size)
-//                    const normalizedDistance = distanceRange > 0 ? 1 - ((point.distanceFromViewpoint - minDistance) / distanceRange) : 0.5;
-                    const normalizedDistance = (distanceRange - (point.distanceFromViewpoint-minDistance)) / distanceRange ;
+                    const normalizedDistance = distanceRange > 0 ? 
+                        (distanceRange - (point.distanceFromViewpoint - minDistance)) / distanceRange : 0.5;
 
-                    const minPointSize = Math.max(1, maxSize * 0.003);
-                    const maxPointSizeCalc = Math.max(5, maxSize * 0.02);
-                    const pointSize = minPointSize + normalizedDistance * (maxPointSizeCalc - minPointSize);
-
-                    // Check if point (including its radius) is visible in viewport
-                    const isVisible = (canvasX + pointSize >= 0 &&
-                                     canvasX - pointSize <= canvas.width &&
-                                     canvasY + pointSize >= 0 &&
-                                     canvasY - pointSize <= canvas.height);
-
-                    if (isVisible) {
-                        visiblePoints++;
-
-                        // Calculate color: Red (close) to Blue (far)
-                        // normalizedDistance: 1 = closest, 0 = farthest
-                        const red = Math.floor(255 * normalizedDistance);           // High when close
-                        const blue = Math.floor(255 * (1 - normalizedDistance));   // High when far
-                        const green = Math.floor(50 * Math.sin(normalizedDistance * Math.PI)); // Subtle green for transition
-
-                        const color = `rgb(${red}, ${green}, ${blue})`;
-
-
-                        // Draw main point
-                        ctx.beginPath();
-                        ctx.arc(canvasX, canvasY, pointSize, 0, 2 * Math.PI);
-                        ctx.fillStyle = color;
-                        ctx.fill();
-
-                        // Add border for definition - darker for close points, lighter for far
-                        const borderIntensity = 100 + 155 * normalizedDistance;
-                        ctx.strokeStyle = `rgb(${borderIntensity}, ${borderIntensity}, ${borderIntensity})`;
-                        ctx.lineWidth = 0.5 + normalizedDistance * 0.5;
-                        ctx.stroke();
+                    // Calculate point size
+                    const minPointSize = minDrawingSize;
+                    const dimensions = currentCollection.getAllPoints()[0].getDimensions();
+                    let maxPointSize = maxDrawingSize;
+                    if (dimensions > 4) {
+                        maxPointSize = Math.max(maxDrawingSize * 4 / dimensions, minDrawingSize);
                     }
+                    const pointSize = minPointSize + normalizedDistance * (maxPointSize - minPointSize);
+
+                    // Calculate color: Red (close) to Blue (far)
+                    const red = normalizedDistance;
+                    const blue = 1 - normalizedDistance;
+                    const green = 0.2 * Math.sin(normalizedDistance * Math.PI);
+
+                    createPointMesh(point.x * zoomLevel, point.y * zoomLevel, point.z * zoomLevel, 
+                                  pointSize, new THREE.Color(red, green, blue));
                 });
 
-                // Draw viewport boundary
-                ctx.strokeStyle = '#ccc';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                // Create lines
+                createLines(points3D, currentCollection.lines, zoomLevel, distanceRange, minDistance);
 
-                // Add color legend
-                ctx.fillStyle = '#333';
-                ctx.font = Math.max(10, maxSize * 0.02) + 'px Arial';
-                ctx.fillText(`Visible: ${visiblePoints}/${totalPoints} points`, 10, canvas.height - 90);
-                const lineCount = currentCollection.lines ? currentCollection.lines.length : 0;
-                ctx.fillText(`Lines: ${lineCount}`, 10, canvas.height - 75);
-                ctx.fillText(`Distance range from origin: ${farthestFromOrigin.toFixed(2)} - ${nearestToOrigin.toFixed(2)}`, 10, canvas.height - 60);
-                ctx.fillText(`Viewpoint: (0, 0, ${viewpoint.z})`, 10, canvas.height - 45);
-                ctx.fillText(`Scale: ${fixedScale.toFixed(1)}px/unit`, 10, canvas.height - 30);
+                // Create trails
+                createTrails();
 
-                // Draw color scale legend
-                ctx.fillText('Color: Red (close) → Blue (far)', 10, canvas.height - 15);
+                // Add coordinate axes
+                createCoordinateAxes();
 
-                // Draw color gradient bar
-                const gradientBarWidth = 100;
-                const gradientBarHeight = 10;
-                const gradientBarX = canvas.width - gradientBarWidth - 20;
-                const gradientBarY = canvas.height - 25;
-
-                const colorGradient = ctx.createLinearGradient(gradientBarX, 0, gradientBarX + gradientBarWidth, 0);
-                colorGradient.addColorStop(0, 'rgb(0, 0, 255)');     // Blue (far)
-                colorGradient.addColorStop(0.5, 'rgb(128, 25, 128)'); // Purple (middle)
-                colorGradient.addColorStop(1, 'rgb(255, 0, 0)');     // Red (close)
-
-                ctx.fillStyle = colorGradient;
-                ctx.fillRect(gradientBarX, gradientBarY, gradientBarWidth, gradientBarHeight);
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(gradientBarX, gradientBarY, gradientBarWidth, gradientBarHeight);
-
-                // Labels for gradient
-                ctx.fillStyle = '#333';
-                ctx.font = Math.max(8, maxSize * 0.015) + 'px Arial';
-                ctx.fillText('Far', gradientBarX - 5, gradientBarY + 8);
-                ctx.fillText('Close', gradientBarX + gradientBarWidth + 5, gradientBarY + 8);
-
-                // Add axes labels
-                ctx.font = Math.max(12, maxSize * 0.025) + 'px Arial';
-                ctx.fillText('X', canvas.width - 25, canvas.height - 45);
-                ctx.fillText('Y', 10, 20);
-                ctx.fillText('Z (depth)', canvas.width / 2 - 30, canvas.height - 45);
-
-                // Mark origin - this should always be at canvas center
-                ctx.fillStyle = '#ff4444';
-                // ctx.beginPath();
-                // ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
-                // ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.fillStyle = '#333';
-                ctx.font = Math.max(10, maxSize * 0.02) + 'px Arial';
-                ctx.fillText('Origin', centerX + 8, centerY - 8);
+                // Render the scene
+                renderer.render(scene, camera);
 
             } catch (error) {
                 console.error('Error rendering 3D points:', error);
             }
+        }
+
+        function clearPreviousMeshes() {
+            // Remove all point meshes
+            pointMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                if (mesh.geometry) mesh.geometry.dispose();
+                if (mesh.material) mesh.material.dispose();
+            });
+            pointMeshes = [];
+
+            // Remove all line meshes
+            lineMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                if (mesh.geometry) mesh.geometry.dispose();
+                if (mesh.material) mesh.material.dispose();
+            });
+            lineMeshes = [];
+
+            // Remove all trail meshes
+            trailMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                if (mesh.geometry) mesh.geometry.dispose();
+                if (mesh.material) mesh.material.dispose();
+            });
+            trailMeshes = [];
+        }
+
+        function createPointMesh(x, y, z, size, color) {
+            const geometry = new THREE.SphereGeometry(size, 16, 16);
+            const material = new THREE.MeshLambertMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+            pointMeshes.push(mesh);
+        }
+
+        function createOriginPoint() {
+            const geometry = new THREE.SphereGeometry(0.03, 16, 16);
+            const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(0, 0, 0);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+            pointMeshes.push(mesh);
+        }
+
+        function createLines(points3D, lines, zoomLevel, distanceRange, minDistance) {
+            if (!lines || lines.length === 0) return;
+
+            lines.forEach(line => {
+                const startIndex = line[0];
+                const endIndex = line[1];
+
+                if (startIndex < points3D.length && endIndex < points3D.length) {
+                    const startPoint = points3D[startIndex];
+                    const endPoint = points3D[endIndex];
+
+                    // Calculate normalized distances for both endpoints
+                    const startNormalizedDistance = distanceRange > 0 ? 
+                        (distanceRange - (startPoint.distanceFromViewpoint - minDistance)) / distanceRange : 0.5;
+                    const endNormalizedDistance = distanceRange > 0 ? 
+                        (distanceRange - (endPoint.distanceFromViewpoint - minDistance)) / distanceRange : 0.5;
+
+                    // Calculate point sizes using same logic as points
+                    const minPointSize = minDrawingSize;
+                    const dimensions = points3D[0].originalPoint.getDimensions();
+                    let maxPointSize = maxDrawingSize;
+                    if (dimensions > 4) {
+                        maxPointSize = Math.max(maxDrawingSize * 4 / dimensions, minDrawingSize);
+                    }
+                    const startRadius = minPointSize + startNormalizedDistance * (maxPointSize - minPointSize);
+                    const endRadius = minPointSize + endNormalizedDistance * (maxPointSize - minPointSize);
+
+                    // Calculate line color based on average distance of endpoints
+                    const avgDistance = (startPoint.distanceFromViewpoint + endPoint.distanceFromViewpoint) / 2;
+                    const avgNormalizedDistance = distanceRange > 0 ?
+                        1 - ((avgDistance - minDistance) / distanceRange) : 0.5;
+
+                    const red = 0.5 + 0.5 * avgNormalizedDistance;
+                    const blue = 0.5 + 0.5 * (1 - avgNormalizedDistance);
+                    const green = 0.25;
+
+                    // Create 3D cylindrical line with tapering
+                    create3DLine(
+                        new THREE.Vector3(startPoint.x * zoomLevel, startPoint.y * zoomLevel, startPoint.z * zoomLevel),
+                        new THREE.Vector3(endPoint.x * zoomLevel, endPoint.y * zoomLevel, endPoint.z * zoomLevel),
+                        startRadius,
+                        endRadius,
+                        new THREE.Color(red, green, blue)
+                    );
+                }
+            });
+        }
+
+        function create3DLine(startPos, endPos, startRadius, endRadius, color) {
+            // Calculate line direction and length
+            const direction = new THREE.Vector3().subVectors(endPos, startPos);
+            const length = direction.length();
+
+            if (length === 0) return; // Skip zero-length lines
+
+            direction.normalize();
+
+            // Create tapered cylinder geometry
+            const segments = 8; // Number of radial segments
+            const heightSegments = 16; // Number of height segments for smooth tapering
+
+            // Create custom geometry for tapered cylinder
+            const geometry = new THREE.CylinderGeometry(endRadius, startRadius, length, segments, heightSegments);
+
+            const material = new THREE.MeshLambertMaterial({ 
+                color: color,
+                opacity: 1,
+                transparent: false
+            });
+
+            const lineMesh = new THREE.Mesh(geometry, material);
+
+            // Position and orient the cylinder
+            const midPoint = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
+            lineMesh.position.copy(midPoint);
+
+            // Orient the cylinder along the line direction
+            // Default cylinder is along Y-axis, so we need to rotate it
+            const up = new THREE.Vector3(0, 1, 0);
+            const quaternion = new THREE.Quaternion().setFromUnitVectors(up, direction);
+            lineMesh.setRotationFromQuaternion(quaternion);
+
+            lineMesh.castShadow = true;
+            lineMesh.receiveShadow = true;
+            scene.add(lineMesh);
+            lineMeshes.push(lineMesh);
+        }
+
+        function createCoordinateAxes() {
+            // X axis (red)
+            const xGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-1, 0, 0),
+                new THREE.Vector3(1, 0, 0)
+            ]);
+            const xMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, opacity: 0.3, transparent: true });
+            const xLine = new THREE.Line(xGeometry, xMaterial);
+            scene.add(xLine);
+            lineMeshes.push(xLine);
+
+            // Y axis (green)
+            const yGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, -1, 0),
+                new THREE.Vector3(0, 1, 0)
+            ]);
+            const yMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, opacity: 0.3, transparent: true });
+            const yLine = new THREE.Line(yGeometry, yMaterial);
+            scene.add(yLine);
+            lineMeshes.push(yLine);
+
+            // Z axis (blue)
+            const zGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, -1),
+                new THREE.Vector3(0, 0, 1)
+            ]);
+            const zMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, opacity: 0.3, transparent: true });
+            const zLine = new THREE.Line(zGeometry, zMaterial);
+            scene.add(zLine);
+            lineMeshes.push(zLine);
+        }
+
+        function createTrails() {
+            const showTrails = document.getElementById('showTrails').checked;
+            if (!showTrails || pointTrails.size === 0) return;
+
+            pointTrails.forEach((trail) => {
+                if (trail.length < 2) return;
+
+                const points = [];
+                const colors = [];
+
+                for (let i = 0; i < trail.length; i++) {
+                    const trailPoint = trail[i];
+                    // Use the stored 3D coordinates directly
+                    points.push(new THREE.Vector3(trailPoint.x, trailPoint.y, trailPoint.z));
+
+                    // Calculate fade based on position in trail
+                    const fadeRatio = i / trail.length;
+
+                    // Calculate color based on distance
+                    const distances = trail.map(p => p.distance);
+                    const minDistance = Math.min(...distances);
+                    const maxDistance = Math.max(...distances);
+                    const distanceRange = maxDistance - minDistance || 1;
+
+                    const normalizedDistance = distanceRange > 0 ?
+                        1 - ((trailPoint.distance - minDistance) / distanceRange) : 0.5;
+
+                    const red = normalizedDistance;
+                    const blue = 1 - normalizedDistance;
+                    const green = 0.2 * Math.sin(normalizedDistance * Math.PI);
+
+                    colors.push(red, green, blue);
+                }
+
+                if (points.length > 1) {
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+                    const material = new THREE.LineBasicMaterial({ 
+                        vertexColors: true,
+                        opacity: 0.6,
+                        transparent: true
+                    });
+
+                    const trailMesh = new THREE.Line(geometry, material);
+                    scene.add(trailMesh);
+                    trailMeshes.push(trailMesh);
+                }
+            });
         }
 
         function createIdentityMatrix(size) {
@@ -999,9 +1194,23 @@
             }
         });
 
-        // Add window resize handler to update canvas size
+        // Add window resize handler to update renderer size
         window.addEventListener('resize', function() {
-            if (currentCollection && currentCollection.size() > 0) {
+            if (renderer && currentCollection && currentCollection.size() > 0) {
+                const container = document.getElementById('canvas3d');
+                const containerElement = document.getElementById('canvasContainer');
+                const containerWidth = containerElement.clientWidth;
+                const windowHeight = window.innerHeight;
+                const containerTop = container.getBoundingClientRect().top;
+                const availableHeight = windowHeight - containerTop - 20; // 20px for bottom margin
+
+                // Use the smaller of available width or height to maintain square aspect ratio
+                // Width accounts for 40px total padding (20px each side), height uses smaller margin
+                containerSize = Math.min(containerWidth - 40, availableHeight);
+                //containerSize = containerWidth;
+//                console.log('windowHeight', window.innerHeight, ' window width', window.innerWidth, ' container heigh ', container.clientHeight, '   container width ', container.clientWidth);
+                renderer.setSize(containerSize, containerSize);
+
                 render3DPoints(currentCollection);
             }
         });
@@ -1040,7 +1249,7 @@
                     render3DPoints(currentCollection);
                 }
 
-                console.log('Zoom level updated to:', zoomLevel);
+                //console.log('Zoom level updated to:', zoomLevel);
             } catch (error) {
                 console.error('Error updating zoom:', error);
             }
@@ -1180,18 +1389,15 @@
             const showTrails = document.getElementById('showTrails').checked;
             if (!showTrails) return;
 
-            // Get current zoom and canvas settings
-            const canvas = document.getElementById('canvas3d');
+            // Get current zoom settings
             const zoomSlider = document.getElementById('zoomSlider');
             const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
-            const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-
 
             points3D.forEach((point, index) => {
-                const canvasX = centerX + (point.x * fixedScale);
-                const canvasY = centerY + (point.y * fixedScale);
+                // Store 3D coordinates directly
+                const x3D = point.x * zoomLevel;
+                const y3D = point.y * zoomLevel;
+                const z3D = point.z * zoomLevel;
 
                 // Get or create trail for this point
                 if (!pointTrails.has(index)) {
@@ -1202,8 +1408,9 @@
 
                 // Add current position to trail
                 trail.push({
-                    x: canvasX,
-                    y: canvasY,
+                    x: x3D,
+                    y: y3D,
+                    z: z3D,
                     timestamp: Date.now(),
                     distance: point.distanceFromViewpoint
                 });
@@ -1216,121 +1423,6 @@
         }
 
 
-        // Draw trails for all points
-        function drawTrails(ctx) {
-            const showTrails = document.getElementById('showTrails').checked;
-            if (!showTrails || pointTrails.size === 0) return;
-
-            const canvas = document.getElementById('canvas3d');
-
-            pointTrails.forEach((trail) => {
-                if (trail.length < 2) return; // Need at least 2 points to draw a trail
-
-                // Draw trail as connected line segments with fading
-                for (let i = 1; i < trail.length; i++) {
-                    const prevPoint = trail[i - 1];
-                    const currentPoint = trail[i];
-
-                    // Calculate fade based on position in trail (newer = more opaque)
-                    const fadeRatio = i / trail.length;
-                    const opacity = fadeRatio * 0.8; // Max opacity of 0.8
-
-                    // Calculate color based on distance (same as main points)
-                    const distances = trail.map(p => p.distance);
-                    const minDistance = Math.min(...distances);
-                    const maxDistance = Math.max(...distances);
-                    const distanceRange = maxDistance - minDistance || 1;
-
-                    const normalizedDistance = distanceRange > 0 ?
-                            1 - ((currentPoint.distance - minDistance) / distanceRange) : 0.5;
-
-                    const red = Math.floor(255 * normalizedDistance);
-                    const blue = Math.floor(255 * (1 - normalizedDistance));
-                    const green = Math.floor(50 * Math.sin(normalizedDistance * Math.PI));
-
-                    // Only draw if both points are reasonably close to viewport
-                    const margin = 100; // Allow some off-screen drawing
-                    if (currentPoint.x >= -margin && currentPoint.x <= canvas.width + margin &&
-                            currentPoint.y >= -margin && currentPoint.y <= canvas.height + margin) {
-
-                        ctx.beginPath();
-                        ctx.moveTo(prevPoint.x, prevPoint.y);
-                        ctx.lineTo(currentPoint.x, currentPoint.y);
-
-                        ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${opacity})`;
-                        ctx.lineWidth = 1 + fadeRatio; // Thicker lines for newer trail segments
-                        ctx.stroke();
-                    }
-                }
-
-                // Draw small dots at trail points for better visibility
-                trail.forEach((trailPoint, i) => {
-                    if (i % 3 !== 0) return; // Only draw every 3rd point to avoid clutter
-
-                    const fadeRatio = i / trail.length;
-                    const opacity = fadeRatio * 0.6;
-
-                    if (opacity > 0.1) { // Only draw if reasonably visible
-
-                        ctx.beginPath();
-                        ctx.arc(trailPoint.x, trailPoint.y, 1, 0, 2 * Math.PI);
-                        ctx.fillStyle = `rgba(128, 128, 128, ${opacity})`;
-                        ctx.fill();
-                    }
-                });
-            });
-        }
-
-        function drawLines(ctx, points3D) {
-            if (!currentCollection || !currentCollection.lines || currentCollection.lines.length === 0) {
-                return;
-            }
-
-            const canvas = document.getElementById('canvas3d');
-            const zoomSlider = document.getElementById('zoomSlider');
-            const zoomLevel = zoomSlider ? parseFloat(zoomSlider.value) : 0.15;
-            const fixedScale = Math.min(canvas.width, canvas.height) * zoomLevel;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-
-            // Draw lines
-            currentCollection.lines.forEach(line => {
- //               console.log("Drawing line:", line);
-                const startIndex = line[0];
-                const endIndex = line[1];
-
-                if (startIndex < points3D.length && endIndex < points3D.length) {
-                    const startPoint = points3D[startIndex];
-                    const endPoint = points3D[endIndex];
-
-                    const startX = centerX + (startPoint.x * fixedScale);
-                    const startY = centerY + (startPoint.y * fixedScale);
-                    const endX = centerX + (endPoint.x * fixedScale);
-                    const endY = centerY + (endPoint.y * fixedScale);
-
-                    // Calculate line color based on average distance of endpoints
-                    const avgDistance = (startPoint.distanceFromViewpoint + endPoint.distanceFromViewpoint) / 2;
-                    const distances = points3D.map(p => p.distanceFromViewpoint);
-                    const minDistance = Math.min(...distances);
-                    const maxDistance = Math.max(...distances);
-                    const distanceRange = maxDistance - minDistance || 1;
-
-                    const normalizedDistance = distanceRange > 0 ?
-                        1 - ((avgDistance - minDistance) / distanceRange) : 0.5;
-
-                    const red = Math.floor(128 + 127 * normalizedDistance);
-                    const blue = Math.floor(128 + 127 * (1 - normalizedDistance));
-                    const green = Math.floor(64);
-
-                    ctx.beginPath();
-                    ctx.moveTo(startX, startY);
-                    ctx.lineTo(endX, endY);
-                    ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, 0.7)`;
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                }
-            });
-        }
 
         window.updateTrailLength = function() {
             try {
@@ -1361,36 +1453,52 @@
                     return;
                 }
 
+                // Get the number of dimensions from the input field
+                const numDimensions = parseInt(document.getElementById('numDimensions').value);
+
+                // Validate dimensions
+                if (!numDimensions || numDimensions < 1) {
+                    alert('Please enter a valid number of dimensions (at least 1)');
+                    return;
+                }
+
+                if (numDimensions > 10) {
+                    if (!confirm(`Generating a ${numDimensions}D cube will create ${Math.pow(2, numDimensions)} vertices. This might be slow. Continue?`)) {
+                        return;
+                    }
+                }
+
                 // Create PointCollection and clear previous data
                 currentCollection = new PointCollection();
                 pointTrails = new Map(); // Clear previous trails
 
-                // Generate tesseract vertices (4D cube with vertices at ±1 for each dimension)
+                // Generate n-dimensional cube vertices (vertices at ±1 for each dimension)
+                const numVertices = Math.pow(2, numDimensions);
                 const vertices = [];
-                for (let i = 0; i < 16; i++) {
-                    const coords = [
-                        (i & 1) ? 1 : -1,        // x coordinate
-                        (i & 2) ? 1 : -1,        // y coordinate
-                        (i & 4) ? 1 : -1,        // z coordinate
-                        (i & 8) ? 1 : -1         // w coordinate
-                    ];
+
+                for (let i = 0; i < numVertices; i++) {
+                    const coords = [];
+                    for (let dim = 0; dim < numDimensions; dim++) {
+                        // Use bit manipulation to determine coordinate value
+                        coords.push((i & (1 << dim)) ? 1 : -1);
+                    }
                     vertices.push(new NDimensionalPoint(...coords));
                     currentCollection.addPoint(new NDimensionalPoint(...coords));
                 }
 
-                // Generate tesseract edges
-                // In a tesseract, two vertices are connected if they differ in exactly one coordinate
+                // Generate n-dimensional cube edges
+                // Two vertices are connected if they differ in exactly one coordinate
                 const lines = [];
-                for (let i = 0; i < 16; i++) {
-                    for (let j = i + 1; j < 16; j++) {
+                for (let i = 0; i < numVertices; i++) {
+                    for (let j = i + 1; j < numVertices; j++) {
                         // Count how many coordinates differ
-                        //let distanceBetweenPoints = currentCollection.points[i].distanceTo(currentCollection.points[j]);
                         let diffCount = 0;
-                        if ((i & 1) !== (j & 1)) diffCount++;
-                        if ((i & 2) !== (j & 2)) diffCount++;
-                        if ((i & 4) !== (j & 4)) diffCount++;
-                        if ((i & 8) !== (j & 8)) diffCount++;
-                        //console.log(distanceBetweenPoints, '  distance, diff ', diffCount);
+                        for (let dim = 0; dim < numDimensions; dim++) {
+                            if ((i & (1 << dim)) !== (j & (1 << dim))) {
+                                diffCount++;
+                            }
+                        }
+
                         // Connect vertices that differ in exactly one coordinate
                         if (diffCount === 1) {
                             lines.push([i, j]);
@@ -1402,11 +1510,11 @@
                 currentCollection.lines = lines;
 
                 // Add origin point for reference
-                currentCollection.addPoint(new NDimensionalPoint(0, 0, 0, 0));
+                const originCoords = new Array(numDimensions).fill(0);
+                currentCollection.addPoint(new NDimensionalPoint(...originCoords));
 
-                // Set dimensions input to 4
-                document.getElementById('numDimensions').value = 4;
-                document.getElementById('numPoints').value = 16;
+                // Update the points input to reflect the number of vertices
+                document.getElementById('numPoints').value = numVertices;
 
                 // Show dimension checkboxes
                 updateDimensionCheckboxes();
@@ -1414,16 +1522,24 @@
 
                 // Show and render 3D visualization
                 document.getElementById('canvasContainer').style.display = 'block';
+                document.getElementById('visualizationControls').style.display = 'block';
                 render3DPoints(currentCollection);
 
-                alert(`Successfully generated tesseract with 16 vertices and ${lines.length} edges!`);
+                const dimensionName = numDimensions === 1 ? '1D line' : 
+                                    numDimensions === 2 ? '2D square' : 
+                                    numDimensions === 3 ? '3D cube' : 
+                                    numDimensions === 4 ? '4D tesseract' : 
+                                    `${numDimensions}D hypercube`;
+
+                alert(`Successfully generated ${dimensionName} with ${numVertices} vertices and ${lines.length} edges!`);
             } catch (error) {
                 console.error('Error in generateTesseract:', error);
-                alert('Error generating tesseract: ' + error.message);
+                alert('Error generating n-dimensional cube: ' + error.message);
             }
         }
 
         window.generateTesseract = generateTesseract;
+        window.dispatchEvent(new Event('resize'));
     </script>
 </body>
 </html>
