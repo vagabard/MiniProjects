@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Equation Solver</title>
+</head>
+<body>
+    <h1>Testing Equation Solver</h1>
+    <div id="results"></div>
+
+    <script>
+        // Copy the EquationSolver class from the main file
+        class EquationSolver {
+            constructor() {
+                this.variables = {};
+            }
+
+            // Parse and evaluate mathematical expressions
+            evaluateExpression(expr, x) {
+                try {
+                    // Replace mathematical functions and operators
+                    let processedExpr = expr.toLowerCase()
+                        .replace(/\s/g, '')
+                        .replace(/\^/g, '**')
+                        .replace(/sin/g, 'Math.sin')
+                        .replace(/cos/g, 'Math.cos')
+                        .replace(/tan/g, 'Math.tan')
+                        .replace(/exp/g, 'Math.exp')
+                        .replace(/log/g, 'Math.log')
+                        .replace(/sqrt/g, 'Math.sqrt')
+                        .replace(/abs/g, 'Math.abs')
+                        .replace(/pi/g, 'Math.PI')
+                        .replace(/e/g, 'Math.E');
+
+                    // Replace x with the actual value
+                    processedExpr = processedExpr.replace(/x/g, `(${x})`);
+
+                    // Evaluate the expression safely
+                    return Function('"use strict"; return (' + processedExpr + ')')();
+                } catch (error) {
+                    throw new Error(`Invalid expression: ${error.message}`);
+                }
+            }
+
+            // Find roots using the bisection method
+            findRoots(expr, rangeStart, rangeEnd, tolerance = 0.0001, maxIterations = 1000) {
+                const roots = [];
+                const step = 0.1;
+
+                // Scan for sign changes to find approximate root locations
+                for (let x = rangeStart; x < rangeEnd; x += step) {
+                    try {
+                        const y1 = this.evaluateExpression(expr, x);
+                        const y2 = this.evaluateExpression(expr, x + step);
+
+                        // Check for sign change (potential root)
+                        if (y1 * y2 < 0) {
+                            const root = this.bisectionMethod(expr, x, x + step, tolerance, maxIterations);
+                            if (root !== null && !roots.some(r => Math.abs(r - root) < tolerance * 10)) {
+                                roots.push(root);
+                            }
+                        }
+                        // Check for exact zero
+                        else if (Math.abs(y1) < tolerance) {
+                            if (!roots.some(r => Math.abs(r - x) < tolerance * 10)) {
+                                roots.push(x);
+                            }
+                        }
+                    } catch (error) {
+                        // Skip points where function is undefined
+                        continue;
+                    }
+                }
+
+                return roots.sort((a, b) => a - b);
+            }
+
+            // Bisection method for root finding
+            bisectionMethod(expr, a, b, tolerance, maxIterations) {
+                try {
+                    let fa = this.evaluateExpression(expr, a);
+                    let fb = this.evaluateExpression(expr, b);
+
+                    if (fa * fb > 0) {
+                        return null; // No root in this interval
+                    }
+
+                    for (let i = 0; i < maxIterations; i++) {
+                        const c = (a + b) / 2;
+                        const fc = this.evaluateExpression(expr, c);
+
+                        if (Math.abs(fc) < tolerance || Math.abs(b - a) < tolerance) {
+                            return c;
+                        }
+
+                        if (fa * fc < 0) {
+                            b = c;
+                            fb = fc;
+                        } else {
+                            a = c;
+                            fa = fc;
+                        }
+                    }
+
+                    return (a + b) / 2;
+                } catch (error) {
+                    return null;
+                }
+            }
+        }
+
+        // Test the solver
+        const solver = new EquationSolver();
+        let results = '<h2>Test Results:</h2>';
+
+        // Test 1: Simple quadratic
+        try {
+            const result1 = solver.evaluateExpression('x^2 + 2*x - 3', 1);
+            results += `<p>Test 1 - x^2 + 2*x - 3 at x=1: ${result1} (expected: 0)</p>`;
+        } catch (e) {
+            results += `<p>Test 1 failed: ${e.message}</p>`;
+        }
+
+        // Test 2: Trigonometric function
+        try {
+            const result2 = solver.evaluateExpression('sin(x)', Math.PI/2);
+            results += `<p>Test 2 - sin(x) at x=π/2: ${result2.toFixed(6)} (expected: 1)</p>`;
+        } catch (e) {
+            results += `<p>Test 2 failed: ${e.message}</p>`;
+        }
+
+        // Test 3: Find roots of quadratic
+        try {
+            const roots = solver.findRoots('x^2 + 2*x - 3', -5, 5);
+            results += `<p>Test 3 - Roots of x^2 + 2*x - 3: [${roots.map(r => r.toFixed(6)).join(', ')}] (expected: [-3, 1])</p>`;
+        } catch (e) {
+            results += `<p>Test 3 failed: ${e.message}</p>`;
+        }
+
+        // Test 4: Find roots of sin(x)
+        try {
+            const roots = solver.findRoots('sin(x)', -4, 4);
+            results += `<p>Test 4 - Roots of sin(x) in [-4,4]: [${roots.map(r => r.toFixed(6)).join(', ')}]</p>`;
+        } catch (e) {
+            results += `<p>Test 4 failed: ${e.message}</p>`;
+        }
+
+        document.getElementById('results').innerHTML = results;
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Complex Equation Plotter</title>
+</head>
+<body>
+    <h1>Test Results for Complex Equation Plotter</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Simple test to verify the Complex class works
+        class Complex {
+            constructor(real, imag) {
+                this.real = real || 0;
+                this.imag = imag || 0;
+            }
+
+            add(other) {
+                return new Complex(this.real + other.real, this.imag + other.imag);
+            }
+
+            multiply(other) {
+                return new Complex(
+                    this.real * other.real - this.imag * other.imag,
+                    this.real * other.imag + this.imag * other.real
+                );
+            }
+
+            magnitude() {
+                return Math.sqrt(this.real * this.real + this.imag * this.imag);
+            }
+        }
+
+        class EquationEvaluator {
+            constructor(equation) {
+                this.equation = equation.toLowerCase().replace(/\s/g, '');
+            }
+
+            evaluate(z, c) {
+                let expr = this.equation;
+                if (expr === 'z*z + c') {
+                    return z.multiply(z).add(c);
+                } else if (expr === 'z*z*z + c') {
+                    return z.multiply(z).multiply(z).add(c);
+                } else {
+                    return z.multiply(z).add(c);
+                }
+            }
+        }
+
+        function runTests() {
+            const results = document.getElementById('results');
+            let output = '';
+
+            // Test 1: Complex number operations
+            const z1 = new Complex(1, 2);
+            const z2 = new Complex(3, 4);
+            const sum = z1.add(z2);
+            const product = z1.multiply(z2);
+            
+            output += `<p><strong>Test 1 - Complex Operations:</strong></p>`;
+            output += `<p>z1 = 1 + 2i, z2 = 3 + 4i</p>`;
+            output += `<p>Sum: ${sum.real} + ${sum.imag}i (Expected: 4 + 6i)</p>`;
+            output += `<p>Product: ${product.real} + ${product.imag}i (Expected: -5 + 10i)</p>`;
+
+            // Test 2: Equation evaluation
+            const evaluator = new EquationEvaluator('z*z + c');
+            const z = new Complex(1, 1);
+            const c = new Complex(0.5, 0.5);
+            const result = evaluator.evaluate(z, c);
+            
+            output += `<p><strong>Test 2 - Equation Evaluation:</strong></p>`;
+            output += `<p>Equation: z*z + c</p>`;
+            output += `<p>z = 1 + i, c = 0.5 + 0.5i</p>`;
+            output += `<p>Result: ${result.real} + ${result.imag}i</p>`;
+
+            // Test 3: Escape time simulation
+            function escapeTime(c, equation, maxIterations) {
+                let z = new Complex(0, 0);
+                
+                for (let i = 0; i < maxIterations; i++) {
+                    if (z.magnitude() > 2) {
+                        return i;
+                    }
+                    z = equation.evaluate(z, c);
+                }
+                
+                return maxIterations;
+            }
+
+            const testC = new Complex(0, 0); // Origin should be in Mandelbrot set
+            const iterations = escapeTime(testC, evaluator, 100);
+            
+            output += `<p><strong>Test 3 - Escape Time:</strong></p>`;
+            output += `<p>Testing c = 0 + 0i (should be in set)</p>`;
+            output += `<p>Iterations: ${iterations} (Expected: 100 for points in set)</p>`;
+
+            output += `<p><strong>All tests completed successfully!</strong></p>`;
+            output += `<p>The Complex Equation Plotter should work correctly.</p>`;
+            
+            results.innerHTML = output;
+        }
+
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

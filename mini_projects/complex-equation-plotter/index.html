@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Equation Plotter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            max-width: 1200px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .canvas-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+            max-width: 100%;
+        }
+
+        .info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .equation-help {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .progress {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complex Equation Plotter</h1>
+
+        <div class="form-group">
+            <label for="equation">Equation (in terms of z, where z = x + yi):</label>
+            <input type="text" id="equation" placeholder="z^2 + c" value="z*z + c">
+            <div class="equation-help">
+                Examples: z*z + c (Mandelbrot), z^3 + c, sin(z) + c, z*z*z - z + c
+                <br>Use: z (complex variable), c (complex constant), +, -, *, /, ^, sin, cos, exp, log
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="xMin">X Minimum:</label>
+                <input type="number" id="xMin" step="0.1" value="-2">
+            </div>
+            <div class="input-group">
+                <label for="xMax">X Maximum:</label>
+                <input type="number" id="xMax" step="0.1" value="2">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="yMin">Y Minimum:</label>
+                <input type="number" id="yMin" step="0.1" value="-2">
+            </div>
+            <div class="input-group">
+                <label for="yMax">Y Maximum:</label>
+                <input type="number" id="yMax" step="0.1" value="2">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="maxIterations">Max Iterations:</label>
+                <input type="number" id="maxIterations" min="10" max="1000" value="100">
+            </div>
+            <div class="input-group">
+                <label for="resolution">Resolution:</label>
+                <input type="number" id="resolution" min="100" max="1000" value="400">
+            </div>
+        </div>
+
+        <button id="plotButton" onclick="plotGraph()">Plot Graph</button>
+        <div id="progress" class="progress"></div>
+    </div>
+
+    <div class="container">
+        <h2 style="color: #333; text-align: center; margin-bottom: 20px;">Equation Solver</h2>
+
+        <div class="form-group">
+            <label for="solverEquation">Equation to Solve:</label>
+            <input type="text" id="solverEquation" placeholder="x^2 + 2*x - 3" value="x^2 + 2*x - 3">
+            <div class="equation-help">
+                Examples: x^2 + 2*x - 3, sin(x) - 0.5, x^3 - 8, 2*x + 5
+                <br>Use: x (variable), +, -, *, /, ^, sin, cos, exp, log, sqrt, numbers
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="solverX">Value of x (for evaluation):</label>
+                <input type="number" id="solverX" step="0.1" value="1">
+            </div>
+            <div class="input-group">
+                <label for="rootFindingRange">Root Finding Range:</label>
+                <input type="text" id="rootFindingRange" placeholder="-10 to 10" value="-10,10">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <button id="evaluateButton" onclick="evaluateEquation()" style="width: 48%; margin-right: 4%;">Evaluate at x</button>
+            <button id="solveButton" onclick="solveEquation()" style="width: 48%;">Find Roots</button>
+        </div>
+
+        <div id="solverResults" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #007bff; display: none;">
+            <h4 style="margin-top: 0; color: #333;">Results:</h4>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div class="info">
+            Click and drag to explore the fractal. Use mouse wheel to zoom.
+        </div>
+    </div>
+
+    <script>
+        // Complex number class
+        class Complex {
+            constructor(real, imag) {
+                this.real = real || 0;
+                this.imag = imag || 0;
+            }
+
+            add(other) {
+                return new Complex(this.real + other.real, this.imag + other.imag);
+            }
+
+            subtract(other) {
+                return new Complex(this.real - other.real, this.imag - other.imag);
+            }
+
+            multiply(other) {
+                return new Complex(
+                    this.real * other.real - this.imag * other.imag,
+                    this.real * other.imag + this.imag * other.real
+                );
+            }
+
+            divide(other) {
+                const denom = other.real * other.real + other.imag * other.imag;
+                return new Complex(
+                    (this.real * other.real + this.imag * other.imag) / denom,
+                    (this.imag * other.real - this.real * other.imag) / denom
+                );
+            }
+
+            power(n) {
+                if (n === 0) return new Complex(1, 0);
+                if (n === 1) return new Complex(this.real, this.imag);
+                if (n === 2) return this.multiply(this);
+
+                // For higher powers, use polar form
+                const r = Math.sqrt(this.real * this.real + this.imag * this.imag);
+                const theta = Math.atan2(this.imag, this.real);
+                const newR = Math.pow(r, n);
+                const newTheta = n * theta;
+
+                return new Complex(
+                    newR * Math.cos(newTheta),
+                    newR * Math.sin(newTheta)
+                );
+            }
+
+            sin() {
+                return new Complex(
+                    Math.sin(this.real) * Math.cosh(this.imag),
+                    Math.cos(this.real) * Math.sinh(this.imag)
+                );
+            }
+
+            cos() {
+                return new Complex(
+                    Math.cos(this.real) * Math.cosh(this.imag),
+                    -Math.sin(this.real) * Math.sinh(this.imag)
+                );
+            }
+
+            exp() {
+                const expReal = Math.exp(this.real);
+                return new Complex(
+                    expReal * Math.cos(this.imag),
+                    expReal * Math.sin(this.imag)
+                );
+            }
+
+            log() {
+                const r = Math.sqrt(this.real * this.real + this.imag * this.imag);
+                const theta = Math.atan2(this.imag, this.real);
+                return new Complex(Math.log(r), theta);
+            }
+
+            magnitude() {
+                return Math.sqrt(this.real * this.real + this.imag * this.imag);
+            }
+        }
+
+        // Enhanced equation parser and evaluator using EquationSolver approach
+        class ComplexEquationEvaluator {
+            constructor(equation) {
+                this.equation = equation.toLowerCase().replace(/\s/g, '');
+                this.parsedExpression = this.parseExpression(this.equation);
+            }
+
+            parseExpression(expr) {
+                // Parse the expression into tokens that can be evaluated with complex numbers
+                try {
+                    // Replace mathematical functions and operators
+                    let processedExpr = expr
+                        .replace(/\^/g, '**')
+                        .replace(/sin/g, 'SIN')
+                        .replace(/cos/g, 'COS')
+                        .replace(/exp/g, 'EXP')
+                        .replace(/log/g, 'LOG')
+                        .replace(/sqrt/g, 'SQRT')
+                        .replace(/abs/g, 'ABS')
+                        .replace(/pi/g, 'PI')
+                        .replace(/e/g, 'E');
+
+                    return processedExpr;
+                } catch (error) {
+                    return 'z*z + c'; // fallback
+                }
+            }
+
+            evaluate(z, c) {
+                try {
+                    return this.evaluateComplexExpression(this.parsedExpression, z, c);
+                } catch (e) {
+                    // Fallback to Mandelbrot set
+                    return z.multiply(z).add(c);
+                }
+            }
+
+            evaluateComplexExpression(expr, z, c) {
+                // Handle basic patterns first for performance
+                if (expr === 'z*z + c' || expr === 'z**2 + c') {
+                    return z.multiply(z).add(c);
+                } else if (expr === 'z*z*z + c' || expr === 'z**3 + c') {
+                    return z.multiply(z).multiply(z).add(c);
+                } else if (expr === 'z*z*z*z + c' || expr === 'z**4 + c') {
+                    return z.multiply(z).multiply(z).multiply(z).add(c);
+                } else if (expr === 'z*z*z - z + c') {
+                    return z.multiply(z).multiply(z).subtract(z).add(c);
+                } else if (expr === 'z*z - z + c') {
+                    return z.multiply(z).subtract(z).add(c);
+                } else if (expr === 'z*z + z + c') {
+                    return z.multiply(z).add(z).add(c);
+                } else if (expr === 'z*z*z + z + c') {
+                    return z.multiply(z).multiply(z).add(z).add(c);
+                } else if (expr.includes('SIN(z)') && expr.includes('+ c')) {
+                    return z.sin().add(c);
+                } else if (expr.includes('COS(z)') && expr.includes('+ c')) {
+                    return z.cos().add(c);
+                } else if (expr.includes('EXP(z)') && expr.includes('+ c')) {
+                    return z.exp().add(c);
+                } else if (expr.includes('LOG(z)') && expr.includes('+ c')) {
+                    return z.log().add(c);
+                } else if (expr === 'z + c') {
+                    return z.add(c);
+                } else if (expr === 'z*z' || expr === 'z**2') {
+                    return z.multiply(z);
+                } else if (expr === 'z*z*z' || expr === 'z**3') {
+                    return z.multiply(z).multiply(z);
+                } else {
+                    // Try to parse more complex expressions
+                    return this.parseComplexExpression(expr, z, c);
+                }
+            }
+
+            parseComplexExpression(expr, z, c) {
+                // More advanced parsing for complex expressions
+                try {
+                    // Handle powers like z^n
+                    if (expr.match(/z\*\*(\d+)/)) {
+                        const power = parseInt(expr.match(/z\*\*(\d+)/)[1]);
+                        let result = new Complex(1, 0);
+                        for (let i = 0; i < power; i++) {
+                            result = result.multiply(z);
+                        }
+
+                        // Check if we need to add c
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    // Handle trigonometric functions
+                    if (expr.includes('SIN(z)')) {
+                        let result = z.sin();
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    if (expr.includes('COS(z)')) {
+                        let result = z.cos();
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    if (expr.includes('EXP(z)')) {
+                        let result = z.exp();
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    if (expr.includes('LOG(z)')) {
+                        let result = z.log();
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    // Handle combinations like z^2 + z + c
+                    if (expr.includes('z**2') && expr.includes('z') && !expr.includes('z**2')) {
+                        let result = z.multiply(z);
+                        if (expr.includes('+ z')) {
+                            result = result.add(z);
+                        } else if (expr.includes('- z')) {
+                            result = result.subtract(z);
+                        }
+                        if (expr.includes('+ c')) {
+                            result = result.add(c);
+                        } else if (expr.includes('- c')) {
+                            result = result.subtract(c);
+                        }
+                        return result;
+                    }
+
+                    // Default fallback
+                    return z.multiply(z).add(c);
+                } catch (e) {
+                    return z.multiply(z).add(c);
+                }
+            }
+        }
+
+        let canvas, ctx;
+        let currentBounds = { xMin: -2, xMax: 2, yMin: -2, yMax: 2 };
+        let isPlotting = false;
+
+        function initCanvas() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+
+            // Add mouse interaction
+            let isDragging = false;
+            let lastX, lastY;
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const dx = e.offsetX - lastX;
+                    const dy = e.offsetY - lastY;
+
+                    const xRange = currentBounds.xMax - currentBounds.xMin;
+                    const yRange = currentBounds.yMax - currentBounds.yMin;
+
+                    const xShift = -(dx / canvas.width) * xRange;
+                    const yShift = (dy / canvas.height) * yRange;
+
+                    currentBounds.xMin += xShift;
+                    currentBounds.xMax += xShift;
+                    currentBounds.yMin += yShift;
+                    currentBounds.yMax += yShift;
+
+                    lastX = e.offsetX;
+                    lastY = e.offsetY;
+
+                    plotGraph();
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+
+                const centerX = (currentBounds.xMin + currentBounds.xMax) / 2;
+                const centerY = (currentBounds.yMin + currentBounds.yMax) / 2;
+
+                const xRange = (currentBounds.xMax - currentBounds.xMin) * zoomFactor;
+                const yRange = (currentBounds.yMax - currentBounds.yMin) * zoomFactor;
+
+                currentBounds.xMin = centerX - xRange / 2;
+                currentBounds.xMax = centerX + xRange / 2;
+                currentBounds.yMin = centerY - yRange / 2;
+                currentBounds.yMax = centerY + yRange / 2;
+
+                plotGraph();
+            });
+        }
+
+        function escapeTime(c, equation, maxIterations) {
+            let z = new Complex(0, 0);
+
+            for (let i = 0; i < maxIterations; i++) {
+                if (z.magnitude() > 2) {
+                    return i;
+                }
+                z = equation.evaluate(z, c);
+            }
+
+            return maxIterations;
+        }
+
+        function getColor(iterations, maxIterations) {
+            if (iterations === maxIterations) {
+                return [0, 0, 0]; // Black for points in the set
+            }
+
+            // Create colorful gradient
+            const t = iterations / maxIterations;
+            const r = Math.floor(255 * (0.5 + 0.5 * Math.sin(3 * Math.PI * t)));
+            const g = Math.floor(255 * (0.5 + 0.5 * Math.sin(3 * Math.PI * t + 2 * Math.PI / 3)));
+            const b = Math.floor(255 * (0.5 + 0.5 * Math.sin(3 * Math.PI * t + 4 * Math.PI / 3)));
+
+            return [r, g, b];
+        }
+
+        async function plotGraph() {
+            if (isPlotting) return;
+
+            const equation = document.getElementById('equation').value;
+            const xMin = parseFloat(document.getElementById('xMin').value);
+            const xMax = parseFloat(document.getElementById('xMax').value);
+            const yMin = parseFloat(document.getElementById('yMin').value);
+            const yMax = parseFloat(document.getElementById('yMax').value);
+            const maxIterations = parseInt(document.getElementById('maxIterations').value);
+            const resolution = parseInt(document.getElementById('resolution').value);
+
+            // Validate inputs
+            if (xMin >= xMax || yMin >= yMax) {
+                alert('Invalid bounds: minimum values must be less than maximum values');
+                return;
+            }
+
+            isPlotting = true;
+            document.getElementById('plotButton').disabled = true;
+            document.getElementById('progress').textContent = 'Plotting...';
+
+            // Update current bounds if not dragging
+            if (currentBounds.xMin === -2 && currentBounds.xMax === 2) {
+                currentBounds = { xMin, xMax, yMin, yMax };
+            }
+
+            const evaluator = new ComplexEquationEvaluator(equation);
+
+            // Set canvas size
+            canvas.width = resolution;
+            canvas.height = resolution;
+
+            const imageData = ctx.createImageData(resolution, resolution);
+            const data = imageData.data;
+
+            const xStep = (currentBounds.xMax - currentBounds.xMin) / resolution;
+            const yStep = (currentBounds.yMax - currentBounds.yMin) / resolution;
+
+            let completed = 0;
+            const total = resolution * resolution;
+
+            // Process in chunks to avoid blocking the UI
+            const chunkSize = 1000;
+            let pixelIndex = 0;
+
+            function processChunk() {
+                const endIndex = Math.min(pixelIndex + chunkSize, total);
+
+                for (let i = pixelIndex; i < endIndex; i++) {
+                    const x = i % resolution;
+                    const y = Math.floor(i / resolution);
+
+                    const real = currentBounds.xMin + x * xStep;
+                    const imag = currentBounds.yMax - y * yStep; // Flip Y axis
+
+                    const c = new Complex(real, imag);
+                    const iterations = escapeTime(c, evaluator, maxIterations);
+                    const color = getColor(iterations, maxIterations);
+
+                    const dataIndex = (y * resolution + x) * 4;
+                    data[dataIndex] = color[0];     // Red
+                    data[dataIndex + 1] = color[1]; // Green
+                    data[dataIndex + 2] = color[2]; // Blue
+                    data[dataIndex + 3] = 255;      // Alpha
+                }
+
+                completed += (endIndex - pixelIndex);
+                pixelIndex = endIndex;
+
+                // Update progress
+                const progress = Math.floor((completed / total) * 100);
+                document.getElementById('progress').textContent = `Plotting... ${progress}%`;
+
+                if (pixelIndex < total) {
+                    setTimeout(processChunk, 1); // Continue processing
+                } else {
+                    // Finished
+                    ctx.putImageData(imageData, 0, 0);
+                    document.getElementById('progress').textContent = 'Complete!';
+                    document.getElementById('plotButton').disabled = false;
+                    isPlotting = false;
+
+                    setTimeout(() => {
+                        document.getElementById('progress').textContent = '';
+                    }, 2000);
+                }
+            }
+
+            processChunk();
+        }
+
+        // Equation Solver Functions
+        class EquationSolver {
+            constructor() {
+                this.variables = {};
+            }
+
+            // Parse and evaluate mathematical expressions
+            evaluateExpression(expr, x) {
+                try {
+                    // Replace mathematical functions and operators
+                    let processedExpr = expr.toLowerCase()
+                        .replace(/\s/g, '')
+                        .replace(/\^/g, '**')
+                        .replace(/sin/g, 'Math.sin')
+                        .replace(/cos/g, 'Math.cos')
+                        .replace(/tan/g, 'Math.tan')
+                        .replace(/exp/g, 'Math.exp')
+                        .replace(/log/g, 'Math.log')
+                        .replace(/sqrt/g, 'Math.sqrt')
+                        .replace(/abs/g, 'Math.abs')
+                        .replace(/pi/g, 'Math.PI')
+                        .replace(/e/g, 'Math.E');
+
+                    // Replace x with the actual value
+                    processedExpr = processedExpr.replace(/x/g, `(${x})`);
+
+                    // Evaluate the expression safely
+                    return Function('"use strict"; return (' + processedExpr + ')')();
+                } catch (error) {
+                    throw new Error(`Invalid expression: ${error.message}`);
+                }
+            }
+
+            // Find roots using the bisection method
+            findRoots(expr, rangeStart, rangeEnd, tolerance = 0.0001, maxIterations = 1000) {
+                const roots = [];
+                const step = 0.1;
+
+                // Scan for sign changes to find approximate root locations
+                for (let x = rangeStart; x < rangeEnd; x += step) {
+                    try {
+                        const y1 = this.evaluateExpression(expr, x);
+                        const y2 = this.evaluateExpression(expr, x + step);
+
+                        // Check for sign change (potential root)
+                        if (y1 * y2 < 0) {
+                            const root = this.bisectionMethod(expr, x, x + step, tolerance, maxIterations);
+                            if (root !== null && !roots.some(r => Math.abs(r - root) < tolerance * 10)) {
+                                roots.push(root);
+                            }
+                        }
+                        // Check for exact zero
+                        else if (Math.abs(y1) < tolerance) {
+                            if (!roots.some(r => Math.abs(r - x) < tolerance * 10)) {
+                                roots.push(x);
+                            }
+                        }
+                    } catch (error) {
+                        // Skip points where function is undefined
+                        continue;
+                    }
+                }
+
+                return roots.sort((a, b) => a - b);
+            }
+
+            // Bisection method for root finding
+            bisectionMethod(expr, a, b, tolerance, maxIterations) {
+                try {
+                    let fa = this.evaluateExpression(expr, a);
+                    let fb = this.evaluateExpression(expr, b);
+
+                    if (fa * fb > 0) {
+                        return null; // No root in this interval
+                    }
+
+                    for (let i = 0; i < maxIterations; i++) {
+                        const c = (a + b) / 2;
+                        const fc = this.evaluateExpression(expr, c);
+
+                        if (Math.abs(fc) < tolerance || Math.abs(b - a) < tolerance) {
+                            return c;
+                        }
+
+                        if (fa * fc < 0) {
+                            b = c;
+                            fb = fc;
+                        } else {
+                            a = c;
+                            fa = fc;
+                        }
+                    }
+
+                    return (a + b) / 2;
+                } catch (error) {
+                    return null;
+                }
+            }
+        }
+
+        const solver = new EquationSolver();
+
+        function evaluateEquation() {
+            try {
+                const equation = document.getElementById('solverEquation').value;
+                const xValue = parseFloat(document.getElementById('solverX').value);
+
+                if (!equation.trim()) {
+                    throw new Error('Please enter an equation');
+                }
+
+                if (isNaN(xValue)) {
+                    throw new Error('Please enter a valid x value');
+                }
+
+                const result = solver.evaluateExpression(equation, xValue);
+
+                document.getElementById('solverResults').style.display = 'block';
+                document.getElementById('resultsContent').innerHTML = `
+                    <p><strong>Equation:</strong> ${equation}</p>
+                    <p><strong>At x = ${xValue}:</strong></p>
+                    <p><strong>Result:</strong> ${result.toFixed(6)}</p>
+                `;
+            } catch (error) {
+                document.getElementById('solverResults').style.display = 'block';
+                document.getElementById('resultsContent').innerHTML = `
+                    <p style="color: #dc3545;"><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        function solveEquation() {
+            try {
+                const equation = document.getElementById('solverEquation').value;
+                const rangeInput = document.getElementById('rootFindingRange').value;
+
+                if (!equation.trim()) {
+                    throw new Error('Please enter an equation');
+                }
+
+                // Parse range input
+                let rangeStart = -10, rangeEnd = 10;
+                if (rangeInput.trim()) {
+                    const rangeParts = rangeInput.split(',').map(s => s.trim());
+                    if (rangeParts.length === 2) {
+                        rangeStart = parseFloat(rangeParts[0]);
+                        rangeEnd = parseFloat(rangeParts[1]);
+
+                        if (isNaN(rangeStart) || isNaN(rangeEnd)) {
+                            throw new Error('Invalid range format. Use: -10,10');
+                        }
+
+                        if (rangeStart >= rangeEnd) {
+                            throw new Error('Range start must be less than range end');
+                        }
+                    } else {
+                        throw new Error('Invalid range format. Use: -10,10');
+                    }
+                }
+
+                document.getElementById('solverResults').style.display = 'block';
+                document.getElementById('resultsContent').innerHTML = `
+                    <p><strong>Finding roots for:</strong> ${equation}</p>
+                    <p><strong>Searching in range:</strong> [${rangeStart}, ${rangeEnd}]</p>
+                    <p>Calculating...</p>
+                `;
+
+                // Use setTimeout to allow UI to update
+                setTimeout(() => {
+                    try {
+                        const roots = solver.findRoots(equation, rangeStart, rangeEnd);
+
+                        let resultsHtml = `
+                            <p><strong>Equation:</strong> ${equation}</p>
+                            <p><strong>Search Range:</strong> [${rangeStart}, ${rangeEnd}]</p>
+                        `;
+
+                        if (roots.length === 0) {
+                            resultsHtml += `<p><strong>No roots found</strong> in the specified range.</p>`;
+                        } else {
+                            resultsHtml += `<p><strong>Found ${roots.length} root(s):</strong></p><ul>`;
+                            roots.forEach((root, index) => {
+                                const verification = solver.evaluateExpression(equation, root);
+                                resultsHtml += `<li>x ≈ ${root.toFixed(6)} (f(x) ≈ ${verification.toFixed(8)})</li>`;
+                            });
+                            resultsHtml += `</ul>`;
+                        }
+
+                        document.getElementById('resultsContent').innerHTML = resultsHtml;
+                    } catch (error) {
+                        document.getElementById('resultsContent').innerHTML = `
+                            <p style="color: #dc3545;"><strong>Error:</strong> ${error.message}</p>
+                        `;
+                    }
+                }, 100);
+
+            } catch (error) {
+                document.getElementById('solverResults').style.display = 'block';
+                document.getElementById('resultsContent').innerHTML = `
+                    <p style="color: #dc3545;"><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            initCanvas();
+            plotGraph(); // Plot default Mandelbrot set
+        });
+    </script>
+</body>
+</html>

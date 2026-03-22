@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Drawing - Side View</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .dog-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Realistic Dog - Side View</h1>
+    <div class="dog-container">
+        <svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- Ground line -->
+            <line x1="50" y1="350" x2="550" y2="350" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Dog body (realistic shape) -->
+            <path d="M 170 250 
+                     Q 180 240 200 245
+                     Q 250 235 300 240
+                     Q 350 245 400 250
+                     Q 420 255 420 270
+                     Q 415 300 400 315
+                     Q 350 325 300 320
+                     Q 250 315 200 320
+                     Q 180 315 170 300
+                     Q 165 275 170 250 Z" 
+                  fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Dog chest/shoulder area -->
+            <path d="M 170 250
+                     Q 150 245 140 255
+                     Q 135 270 140 285
+                     Q 150 300 170 300
+                     Q 175 275 170 250 Z"
+                  fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Dog head -->
+            <ellipse cx="120" cy="240" rx="50" ry="40" fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Dog snout -->
+            <ellipse cx="80" cy="250" rx="25" ry="20" fill="#CD853F" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Dog nose -->
+            <ellipse cx="65" cy="245" rx="8" ry="6" fill="#000"/>
+            
+            <!-- Dog eye -->
+            <circle cx="110" cy="230" r="8" fill="#000"/>
+            <circle cx="113" cy="227" r="3" fill="#FFF"/>
+            
+            <!-- Dog ears -->
+            <ellipse cx="140" cy="210" rx="20" ry="35" fill="#8B4513" stroke="#654321" stroke-width="1" transform="rotate(-20 140 210)"/>
+            <ellipse cx="100" cy="205" rx="18" ry="30" fill="#8B4513" stroke="#654321" stroke-width="1" transform="rotate(10 100 205)"/>
+            
+            <!-- Front legs -->
+            <rect x="170" y="320" width="20" height="30" fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            <rect x="210" y="320" width="20" height="30" fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Back legs -->
+            <rect x="350" y="320" width="20" height="30" fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            <rect x="390" y="320" width="20" height="30" fill="#D2691E" stroke="#8B4513" stroke-width="2"/>
+            
+            <!-- Paws -->
+            <ellipse cx="180" cy="355" rx="12" ry="8" fill="#8B4513"/>
+            <ellipse cx="220" cy="355" rx="12" ry="8" fill="#8B4513"/>
+            <ellipse cx="360" cy="355" rx="12" ry="8" fill="#8B4513"/>
+            <ellipse cx="400" cy="355" rx="12" ry="8" fill="#8B4513"/>
+            
+            <!-- Tail -->
+            <path d="M 420 270 Q 480 250 500 220 Q 520 200 510 180" 
+                  stroke="#D2691E" stroke-width="15" fill="none" stroke-linecap="round"/>
+            
+            <!-- Tail tip -->
+            <circle cx="510" cy="180" r="8" fill="#8B4513"/>
+            
+            <!-- Dog collar -->
+            <rect x="140" y="260" width="60" height="12" fill="#FF0000" stroke="#8B0000" stroke-width="1" rx="6"/>
+            
+            <!-- Collar buckle -->
+            <rect x="190" y="262" width="8" height="8" fill="#FFD700" stroke="#DAA520" stroke-width="1"/>
+            
+            <!-- Fur texture lines -->
+            <path d="M 250 240 Q 260 235 270 240" stroke="#8B4513" stroke-width="1" fill="none"/>
+            <path d="M 280 250 Q 290 245 300 250" stroke="#8B4513" stroke-width="1" fill="none"/>
+            <path d="M 320 260 Q 330 255 340 260" stroke="#8B4513" stroke-width="1" fill="none"/>
+            <path d="M 160 270 Q 170 265 180 270" stroke="#8B4513" stroke-width="1" fill="none"/>
+            
+            <!-- Mouth line -->
+            <path d="M 75 260 Q 85 265 95 260" stroke="#8B4513" stroke-width="2" fill="none"/>
+            
+            <!-- Whiskers -->
+            <line x1="45" y1="245" x2="25" y2="240" stroke="#000" stroke-width="1"/>
+            <line x1="45" y1="250" x2="20" y2="250" stroke="#000" stroke-width="1"/>
+            <line x1="45" y1="255" x2="25" y2="260" stroke="#000" stroke-width="1"/>
+        </svg>
+    </div>
+    
+    <p style="margin-top: 20px; color: #666; text-align: center; max-width: 500px;">
+        This SVG drawing depicts a realistic dog in side profile, showing characteristic features including 
+        a proportioned body, four legs, pointed ears, a curved tail, and facial details like eyes, nose, and whiskers.
+    </p>
+</body>
+</html>
